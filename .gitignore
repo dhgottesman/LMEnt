@@ -1,0 +1,10 @@
+.idea
+output
+*.log
+*.csv
+__pycache__/
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+*.png
+wikidata*
+*/*/slurm_output/*

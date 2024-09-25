@@ -34,16 +34,17 @@ def my_build_links(text: str) -> Tuple[str, List[Dict]]:
 
 def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict]], None, None]:
     cleaner = wiki.cleaner.Cleaner()
-    for id, title, text in wiki.iterate(dump_file):
+    # for id, title, text in wiki.iterate(dump_file):
+    for title, text in wiki.iterate(dump_file):
         text = cleaner.clean_text(text)
         # Their version is very complicated and buggy, so I just implemented it using regex
         # cleaned_text, links = cleaner.build_links(text)
         cleaned_text, links = my_build_links(text)
 
-        assert id is not None, f"ID is None for title: {title}"
+        # assert id is not None, f"ID is None for title: {title}"
         assert title is not None, f"Title is None for ID: {id}"
 
-        yield id, title, cleaned_text, links
+        yield None, title, cleaned_text, links
 
 def parse_link(link: dict) -> Tuple[int, int, str, str]:
     return int(link['begin']), int(link['end']), link['link'], link['text']
@@ -79,8 +80,14 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
 
 
 def parse(dump_file: str) -> Generator[Tuple[str, str, int, int, str], None, None]:
-    coref = FCoref(enable_progress_bar=False)
+    coref = FCoref(device_map='auto', enable_progress_bar=False)
     for id, title, text, links in parse_wikipedia_dump(dump_file):
         coref_clusters = get_coref_clusters(coref, [text])[0]
         for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
             yield id, title, entity_start, entity_end, entity_name
+
+if __name__ == '__main__':
+    wiki_file = "/home/morg/students/ohavbarbi/knowledge_analysis_suite/data/wikidatawiki-latest-pages-articles1.xml-p1p441397"
+    gen = parse(wiki_file)
+    for value in gen:
+        print(value)
