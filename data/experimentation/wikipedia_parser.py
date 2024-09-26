@@ -1,6 +1,7 @@
 import re
 from fastcoref import FCoref
 import wiki_dump_reader as wiki
+from json_writer import JsonWriter
 from typing import Dict, Generator, List, Tuple
 
 def my_build_links(text: str) -> Tuple[str, List[Dict]]:
@@ -26,7 +27,7 @@ def my_build_links(text: str) -> Tuple[str, List[Dict]]:
         # Update offset - for each link we remove, the text gets shorter by the length of the link text
         offset += match.end() - match.start() - len(link_text)
 
-        if not (link_text.startswith("Category:") or link_text.startswith("File:")):
+        if not (entity_name.startswith("Category:") or entity_name.startswith("File:")):
             links.append({"begin": begin, "end": end, "link": entity_name, "text": link_text})
 
     return out, links
@@ -86,8 +87,23 @@ def parse(dump_file: str) -> Generator[Tuple[str, str, int, int, str], None, Non
         for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
             yield id, title, entity_start, entity_end, entity_name
 
+def write(dump_file: str, out_base_path: str):
+    coref = FCoref(enable_progress_bar=False)
+    writer = JsonWriter(out_base_path, verbose=True)
+
+    for id, title, text, links in parse_wikipedia_dump(dump_file):
+        coref_clusters = get_coref_clusters(coref, [text])[0]
+        ents = []
+        for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
+            ents.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
+
+        writer.write({"src_file": dump_file, "id": id, "text": text, "title": title, "entities": ents})
+
+    writer.close()
+
 if __name__ == '__main__':
     wiki_file = "/home/morg/students/ohavbarbi/knowledge_analysis_suite/data/wikidatawiki-latest-pages-articles1.xml-p1p441397"
     gen = parse(wiki_file)
     for value in gen:
         print(value)
+
