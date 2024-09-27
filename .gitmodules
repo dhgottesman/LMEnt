@@ -1,3 +1,6 @@
 [submodule "dclm"]
 	path = dclm
 	url = https://github.com/ido-co/dclm
+[submodule "TinyLlama"]
+	path = TinyLlama
+	url = https://github.com/ido-co/TinyLlama.git
