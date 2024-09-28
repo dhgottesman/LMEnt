@@ -81,7 +81,7 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
 
 
 def parse(dump_file: str) -> Generator[Tuple[str, str, int, int, str], None, None]:
-    coref = FCoref(device_map='auto', enable_progress_bar=False)
+    coref = FCoref(device='cuda', enable_progress_bar=False)
     for id, title, text, links in parse_wikipedia_dump(dump_file):
         coref_clusters = get_coref_clusters(coref, [text])[0]
         for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
