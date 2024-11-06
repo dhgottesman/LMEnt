@@ -18,7 +18,7 @@ class JsonWriter:
         self._open_chunk()
 
     def _open_chunk(self):
-        self.file = gzip.open(self.path, 'wt')
+        self.file = gzip.open(self.temporary_path, 'wt')
         self.writer = jsonlines.Writer(self.file)
 
     def _log(self, msg):
@@ -29,6 +29,10 @@ class JsonWriter:
     def path(self):
         return f"{self.base_path}_{self.chunk_num}.jsonl.gz"
 
+    @property
+    def temporary_path(self):
+        return self.path + ".tmp"
+
     def write(self, data):
         self.writer.write(data)
 
@@ -38,7 +42,7 @@ class JsonWriter:
             self._log("Flushing and checking chunk size")
             self.file.flush()
 
-            if os.path.getsize(self.path) >= self.min_chunk_size_bytes:
+            if os.path.getsize(self.temporary_path) >= self.min_chunk_size_bytes:
                 self._log("Performing chunk rollover")
                 self.close()
                 self.chunk_num += 1
@@ -48,3 +52,4 @@ class JsonWriter:
     def close(self):
         self.writer.close()
         self.file.close()
+        os.rename(self.temporary_path, self.path)

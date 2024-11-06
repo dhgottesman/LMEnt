@@ -3,6 +3,10 @@ from fastcoref import FCoref
 import wiki_dump_reader as wiki
 from json_writer import JsonWriter
 from typing import Dict, Generator, List, Tuple
+import argparse
+import torch
+
+REDIRECT_REGEX = re.compile('^REDIRECT \\[\\[([a-zA-Z ]+)\\]\\]$')
 
 def my_build_links(text: str) -> Tuple[str, List[Dict]]:
     # We don't want to just remove the links, we want to replace them with the link text so that the returned text
@@ -33,19 +37,25 @@ def my_build_links(text: str) -> Tuple[str, List[Dict]]:
     return out, links
 
 
-def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict]], None, None]:
+def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], bool], None, None]:
     cleaner = wiki.cleaner.Cleaner()
-    # for id, title, text in wiki.iterate(dump_file):
-    for title, text in wiki.iterate(dump_file):
+    for id, title, text in wiki.iterate(dump_file):
         text = cleaner.clean_text(text)
-        # Their version is very complicated and buggy, so I just implemented it using regex
-        # cleaned_text, links = cleaner.build_links(text)
-        cleaned_text, links = my_build_links(text)
-
-        # assert id is not None, f"ID is None for title: {title}"
+        assert id is not None, f"ID is None for title: {title}"
         assert title is not None, f"Title is None for ID: {id}"
-
-        yield None, title, cleaned_text, links
+        
+        # Check for redirection page
+        match = REDIRECT_REGEX.match(text)
+        if match is not None:
+            # Is a redirect
+            redirect_name = match.group(1)
+            yield id, title, redirect_name, None, True
+        else:
+            # Is a normal page
+            # Their version is very complicated and buggy, so I just implemented it using regex
+            # cleaned_text, links = cleaner.build_links(text)
+            cleaned_text, links = my_build_links(text)
+            yield id, title, cleaned_text, links, False
 
 def parse_link(link: dict) -> Tuple[int, int, str, str]:
     return int(link['begin']), int(link['end']), link['link'], link['text']
@@ -58,7 +68,7 @@ def is_coref_cluster_linked(link_start: int, link_end: int, coref_entity_cluster
     return False
 
 def get_coref_clusters(coref: FCoref, texts: List[str], as_strings=False) -> List[List[Tuple[Tuple[int, int],...]]]:
-    return [x.get_clusters(as_strings=as_strings) for x in coref.predict(texts, max_tokens_in_batch=1000000)]
+    return [x.get_clusters(as_strings=as_strings) for x in coref.predict(texts, max_tokens_in_batch=100000)]
 
 def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], links: List[Dict]) -> Generator[Tuple[int, int, str], None, None]:
     for link in links:
@@ -80,30 +90,41 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
             yield (link_start, link_end, entity_name)
 
 
-def parse(dump_file: str) -> Generator[Tuple[str, str, int, int, str], None, None]:
-    coref = FCoref(device='cuda', enable_progress_bar=False)
-    for id, title, text, links in parse_wikipedia_dump(dump_file):
-        coref_clusters = get_coref_clusters(coref, [text])[0]
-        for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
-            yield id, title, entity_start, entity_end, entity_name
+def parse(dump_file_path: str, device: str) -> Generator[Tuple[str, str, int, int, str], None, None]:
+    coref = FCoref(device=device, enable_progress_bar=False)
+    for id, title, text, links, is_redirect in parse_wikipedia_dump(dump_file_path):
+        if is_redirect:
+            yield id, title, text, links, is_redirect 
+        else:
+            coref_clusters = get_coref_clusters(coref, [text])[0]
+            for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
+                yield id, title, entity_start, entity_end, entity_name
 
-def write(dump_file: str, out_base_path: str):
-    coref = FCoref(enable_progress_bar=False)
+def write(dump_file_path: str, out_base_path: str, device: str):
+    coref = FCoref(device=device, enable_progress_bar=True)
     writer = JsonWriter(out_base_path, verbose=True)
-
-    for id, title, text, links in parse_wikipedia_dump(dump_file):
-        coref_clusters = get_coref_clusters(coref, [text])[0]
+    for id, title, text, links, is_redirect in parse_wikipedia_dump(dump_file_path):
         ents = []
-        for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
-            ents.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
-
-        writer.write({"src_file": dump_file, "id": id, "text": text, "title": title, "entities": ents})
+        if not is_redirect:
+            # Only normal pages have entities.
+            coref_clusters = get_coref_clusters(coref, [text])[0]
+            ents = []
+            for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
+                ents.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
+            del coref_clusters    
+            torch.cuda.empty_cache()
+        writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": ents, 'is_redirect': is_redirect})  
 
     writer.close()
 
 if __name__ == '__main__':
-    wiki_file = "/home/morg/students/ohavbarbi/knowledge_analysis_suite/data/wikidatawiki-latest-pages-articles1.xml-p1p441397"
-    gen = parse(wiki_file)
-    for value in gen:
-        print(value)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dump_file", type=str, required=True)
+    parser.add_argument("--output", type=str)
+    parser.add_argument('--device', type=str, default='cuda:0')
+    args = parser.parse_args()
 
+    if args.output:
+        write(args.dump_file, args.output, args.device)
+    else:
+        parse(args.dump_file, args.device)
