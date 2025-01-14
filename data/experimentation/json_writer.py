@@ -2,10 +2,10 @@ import os
 import gzip
 import jsonlines
 
-DEFAULT_MIN_CHUNK_SIZE_BYTES = 1024 * 1024 * 1024 # 1 GB
+DEFAULT_MAX_CHUNK_SIZE_BYTES = 1024 * 1024 * 1024 # 1 GB
 
 class JsonWriter:
-    def __init__(self, base_path, chunk_test_interval=10000, min_chunk_size_bytes=DEFAULT_MIN_CHUNK_SIZE_BYTES, verbose=False):
+    def __init__(self, base_path, chunk_test_interval=10000, max_chunk_size_bytes=DEFAULT_MAX_CHUNK_SIZE_BYTES, verbose=False):
         self.base_path = base_path
 
         self.chunk_num = 0
@@ -13,7 +13,7 @@ class JsonWriter:
 
         self.verbose = verbose
         self.chunk_test_interval = chunk_test_interval
-        self.min_chunk_size_bytes = min_chunk_size_bytes
+        self.max_chunk_size_bytes = max_chunk_size_bytes
 
         self._open_chunk()
 
@@ -42,7 +42,7 @@ class JsonWriter:
             self._log("Flushing and checking chunk size")
             self.file.flush()
 
-            if os.path.getsize(self.temporary_path) >= self.min_chunk_size_bytes:
+            if os.path.getsize(self.temporary_path) >= self.max_chunk_size_bytes:
                 self._log("Performing chunk rollover")
                 self.close()
                 self.chunk_num += 1
@@ -50,6 +50,7 @@ class JsonWriter:
 
 
     def close(self):
+        self.file.flush()
         self.writer.close()
         self.file.close()
         os.rename(self.temporary_path, self.path)

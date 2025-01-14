@@ -12,8 +12,8 @@
 
 filelist=$1
 
-OUT_DIR="/home/morg/dataset/parsed_wiki/"
-
+OUT_DIR="/home/morg/dataset/parsed_wiki_rerun/"
+mkdir OUT_DIR
 # Read the file list, unzip then run each file.
 while IFS= read -r filename; do
 	echo $filename
