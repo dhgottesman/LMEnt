@@ -1,3 +1,5 @@
+import copy
+import json
 import re
 from fastcoref import FCoref
 import wiki_dump_reader as wiki
@@ -6,69 +8,110 @@ from typing import Dict, Generator, List, Tuple
 import argparse
 import torch
 from tokenizers import Tokenizer
+import mwparserfromhell
+from mwparserfromhell.nodes import *
+from mwparserfromhell.wikicode import Wikicode
 
-REDIRECT_REGEX = re.compile('^redirect \\[\\[([a-z\\s_,]+)\\]\\]$')
-REDIRECT_REGEX_2 = re.compile('^redirect ([^\\n]+)(\\n|.)*$')
-
-def my_build_links(text: str) -> Tuple[str, List[Dict]]:
-    # We don't want to just remove the links, we want to replace them with the link text so that the returned text
-    # is parseable. We also want to make sure the links indices are consistent with the new text.
-    out = ""
-
-    links = []
-    last_index = 0
-    offset = 0
-
-    for match in re.finditer(r"\[\[(.*?)(?:\|(.*?))?\]\]", text):
-        entity_name, link_text = match.groups()
-        link_text = link_text or entity_name
-
-        out += text[last_index:match.start()] + link_text
-        last_index = match.end()
-
-        # Calculate new begin after removing the link text
-        begin = match.start() - offset
-        end = begin + len(link_text)
-
-        # Update offset - for each link we remove, the text gets shorter by the length of the link text
-        offset += match.end() - match.start() - len(link_text)
-
-        if not (entity_name.startswith("Category:") or entity_name.startswith("File:")):
-            links.append({"begin": begin, "end": end, "link": entity_name, "text": link_text})
-
-    return out, links
+import mwxml
 
 
-def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], bool], None, None]:
-    cleaner = wiki.cleaner.Cleaner()
-    for id, title, text in wiki.iterate(dump_file):
-        text = cleaner.clean_text(text)
-        assert id is not None, f"ID is None for title: {title}"
-        assert title is not None, f"Title is None for ID: {id}"
-        
-        # Check for redirection page
-        lower_text = text.lower().strip()
-        match = REDIRECT_REGEX.match(lower_text)
-        if match is None:
-            match = REDIRECT_REGEX_2.match(lower_text)
-        if match is not None:
-            # Is a redirect
-            redirect_name = match.group(1)
-            yield id, title, redirect_name, None, True
+def _bad_text(text):
+    bad_prefixes = ("file:", "image:", "category:")
+    return len(str(text).strip()) == 0 or str(text).strip().lower().startswith(bad_prefixes)
+
+def _bad_link(link):
+    bad_prefixes = ("file:", "image:", "category:")
+    return str(link.title).strip().lower().startswith(bad_prefixes)
+
+def _bad_types(node):
+    return not(isinstance(node, Tag) or isinstance(node, Heading) or isinstance(node, Wikilink) or isinstance(node, Text))
+
+# Inspo taken from: https://github.com/earwig/earwigbot/blob/dfae10cf12e46d6ad3c33312fdc7bd4649be47c3/src/earwigbot/wiki/copyvios/parsers.py#L154
+def strip_code(wikicode):
+    for node in wikicode.filter(matches=_bad_types, recursive=False):
+        wikicode.remove(node)
+    for node in wikicode.filter_wikilinks(matches=_bad_link, recursive=False):
+        wikicode.remove(node)
+    for node in wikicode.filter_text(matches=_bad_text, recursive=False):
+        wikicode.remove(node)
+    for node in wikicode.filter_tags(recursive=False):
+        bad_tags = ("ref", "table")
+        if node.tag in bad_tags:
+            wikicode.remove(node)
+        elif len(node._contents.nodes) == 0:
+            wikicode.remove(node)
         else:
-            # Is a normal page
-            # Their version is very complicated and buggy, so I just implemented it using regex
-            # cleaned_text, links = cleaner.build_links(text)
-            cleaned_text, links = my_build_links(text)
+            # Need to make sure not stripping links.
+            idx = wikicode.index(node)
+            new_contents = strip_code(copy.deepcopy(node._contents))
+            if len(new_contents.nodes) == 0:
+                wikicode.remove(node)
+            elif len(new_contents.nodes) == 1:
+                wikicode.set(idx, new_contents.nodes[0])
+            else:
+                # Remove Tag node and bring all it's children to the top-level.
+                # This happens when the Tag contains Text and Wikilinks.
+                wikicode.remove(node)
+                for offset, child in enumerate(new_contents.nodes):
+                    wikicode.insert(idx + offset, child)
+    return wikicode
+
+def get_sections(wikicode, section_spans):
+    sections = wikicode.get_sections(flat=True, include_lead=True, levels=[2, 3, 4, 5, 6])
+    flat_list = []
+
+    for section in sections:
+        headings = section.filter_headings()
+        if headings:
+            section_title = headings[0].title.strip()
+            heading_level = headings[0].level
+            section_start = section_spans[section_title]["begin"]
+            section_end = section_start
+        else:
+            # This is the lead (no heading)
+            section_title = "Lead"
+            heading_level = 1
+            section_start = 0
+            section_end = 0
+
+        # Extract the immediate content of this section (excluding sub-sections)
+        section_text = str(section)
+        section_end += len(section_text)
+
+        flat_list.append({
+            "title": section_title,
+            "level": heading_level,
+            "content": section_text,
+            "begin": section_start,
+            "end": section_end
+        })
+
+    return flat_list
+
+def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, Wikicode, List[Dict], List[Dict], bool], None, None]:
+    for page in mwxml.Dump.from_file(dump_file):
+        id, title, redirect = page.id, page.title, page.redirect
+        if redirect:
+            yield id, title, None, [], None, True
+        else:
+            last_revision = None
+            for revision in page:
+                last_revision = revision
+            text = last_revision.text
+            wikicode = mwparserfromhell.parse(text)
+            wikicode = strip_code(wikicode)
+
+            wikicode, links, header_spans = find_wikilinks_spans(wikicode) # convert spans to links
             
-            match = REDIRECT_REGEX.match(cleaned_text)
-            if match is None:
-                match = REDIRECT_REGEX_2.match(cleaned_text)
-            if match is not None:
-                print(cleaned_text)
-                yield id, title, match.group(1), None, True
-                continue
-            yield id, title, cleaned_text, links, False
+            sections = get_sections(copy.deepcopy(wikicode), header_spans)
+
+            for link in links:
+                assert(str(wikicode)[link["begin"]:link["end"]] == link["text"])
+
+            for section in sections:
+                assert(str(wikicode)[section["begin"]:section["end"]] == section["content"])
+
+            yield id, title, wikicode, sections, links, False
 
 def parse_link(link: dict) -> Tuple[int, int, str, str]:
     return int(link['begin']), int(link['end']), link['link'], link['text']
@@ -102,50 +145,59 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
         if not found:
             yield (link_start, link_end, entity_name)
 
+def find_wikilinks_spans(wikicode):
+    entity_spans = []
+    header_spans = {}
+    current_pos = 0  # Tracks the aggregated position in the text
 
-def parse_text_into_sections(title, text):
-    # Regular expression to match headers marked by "=" signs
-    section_pattern = re.compile(r"=+\s*([^=\n]+)\s*=+")
-    # Split text into sections using the headers
-    matches = list(section_pattern.finditer(text))
+    for i, node in enumerate(wikicode.nodes):
+        # Process Wikilinks
+        if isinstance(node, Wikilink):
+            node_text = node.__strip__()
+            node_length = len(node_text)
+            entity_spans.append({
+                'link': str(node.title).strip(),
+                'text': node_text,
+                'begin': current_pos,
+                'end': current_pos + node_length
+            })
+            wikicode.set(i, Text(node_text))  # Replace Wikilink with plain text
 
-    if len(matches) == 0:
-        print(title)
-        print('---')
-        print(text)
-        print('---')
-        print(text.strip().startswith('Category:'))
-        return []
+        # Process Headings and embedded Wikilinks
+        elif isinstance(node, Heading):
+            heading_pos = 0
+            heading_nodes = copy.deepcopy(node.title.nodes)
 
-    starting_section = {'header': title, 'content': text[0:matches[0].start()], 'section_id': 0, 'start_index': 0, 'end_index': matches[0].start()}
-    
-    # Create a list of dictionaries with headers and their corresponding content
-    parsed_sections = [starting_section]
-    for i, match in enumerate(matches):
-        header = match.group(1).strip()
-        start_position = match.end()  # The content starts after the header
-        end_position = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        content = text[start_position:end_position].strip()
-        parsed_sections.append({
-            "header": header,
-            "content": content,
-            'section_id': i + 1,
-            'start_index': start_position,
-            'end_index': end_position,
-        })
-    
-    return parsed_sections
+            for j, heading_node in enumerate(node.title.nodes):
+                heading_text = heading_node.__strip__() if isinstance(heading_node, Wikilink) else str(heading_node)
+                heading_length = len(heading_text)
 
+                if isinstance(heading_node, Wikilink):
+                    entity_spans.append({
+                        'link': str(heading_node.title).strip(),
+                        'text': heading_text,
+                        'begin': current_pos + heading_pos + node.level,
+                        'end': current_pos + heading_pos + node.level + heading_length
+                    })
+                    heading_nodes[j] = Text(heading_text)
 
-def parse(dump_file_path: str, device: str) -> Generator[Tuple[str, str, int, int, str], None, None]:
-    coref = FCoref(device=device, enable_progress_bar=False)
-    for id, title, text, links, is_redirect in parse_wikipedia_dump(dump_file_path):
-        if is_redirect:
-            yield id, title, text, links, is_redirect 
+                heading_pos += heading_length
+
+            node.title.nodes = heading_nodes
+            wikicode.set(i, node)
+
+            # Set the header span after updating Wikilinks.
+            node_text = str(node)
+            node_length = len(node_text)
+            header_spans[node.title.strip()] = {'begin': current_pos}
+
         else:
-            coref_clusters = get_coref_clusters(coref, [text])[0]
-            for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
-                yield id, title, entity_start, entity_end, entity_name
+            node_text = str(node)
+            node_length = len(node_text)
+
+        current_pos += node_length  # Move position forward
+
+    return wikicode, entity_spans, header_spans
 
 def write(dump_file_path: str, out_base_path: str, device: str):
     coref = FCoref(device=device, enable_progress_bar=True)
@@ -158,28 +210,27 @@ def write(dump_file_path: str, out_base_path: str, device: str):
                'redirect_count': 0,
                'entity_count': 0
               }
-    for id, title, text, links, is_redirect in parse_wikipedia_dump(dump_file_path):
-        ents = []
-        sections = []
+    for id, title, wikicode, sections, links, is_redirect in parse_wikipedia_dump(dump_file_path):
+        entities = []
+        text = str(wikicode)
+        metrics['redirect_count'] += is_redirect
+
         if not is_redirect:
             # Only normal pages have entities.
             coref_clusters = get_coref_clusters(coref, [text])[0]
-            ents = []
             for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
-                ents.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
+                entities.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
             del coref_clusters    
             torch.cuda.empty_cache()
             
-            sections = parse_text_into_sections(title, text)
-
-        metrics['text_length'] += len(text)
-        metrics['token_count'] += len(tokenizer.encode(text))
-        metrics['word_count'] += len(text.split(' '))
-        metrics['article_count'] += 1
-        metrics['redirect_count'] += is_redirect
-        metrics['entity_count'] += len(ents)
-        writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": ents, 'is_redirect': is_redirect, 'sections': sections})
-
+            metrics['text_length'] += len(text)
+            metrics['token_count'] += len(tokenizer.encode(text))
+            metrics['word_count'] += len(text.split(' '))
+            metrics['article_count'] += 1
+            metrics['entity_count'] += len(entities)
+        
+        writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": entities, 'is_redirect': is_redirect, 'sections': sections})
+    
     writer.close()
     with open(writer.out_base_path + '_metrics.json', 'w') as f:
         json.dump(metrics, f)
@@ -191,7 +242,4 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda:0')
     args = parser.parse_args()
 
-    if args.output:
-        write(args.dump_file, args.output, args.device)
-    else:
-        parse(args.dump_file, args.device)
+    write(args.dump_file, args.output, args.device)
