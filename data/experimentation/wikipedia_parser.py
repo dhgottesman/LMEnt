@@ -35,7 +35,7 @@ def strip_code(wikicode):
     for node in wikicode.filter_text(matches=_bad_text, recursive=False):
         wikicode.remove(node)
     for node in wikicode.filter_tags(recursive=False):
-        bad_tags = ("ref", "table")
+        bad_tags = ("ref", "table", "gallery")
         if node.tag in bad_tags:
             wikicode.remove(node)
         elif len(node._contents.nodes) == 0:
