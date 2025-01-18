@@ -1,8 +1,7 @@
+import time
 import copy
 import json
-import re
 from fastcoref import FCoref
-import wiki_dump_reader as wiki
 from json_writer import JsonWriter
 from typing import Dict, Generator, List, Tuple
 import argparse
@@ -11,8 +10,10 @@ from tokenizers import Tokenizer
 import mwparserfromhell
 from mwparserfromhell.nodes import *
 from mwparserfromhell.wikicode import Wikicode
-
 import mwxml
+import wandb
+import os
+import traceback
 
 
 def _bad_text(text):
@@ -28,22 +29,51 @@ def _bad_types(node):
 
 # Inspo taken from: https://github.com/earwig/earwigbot/blob/dfae10cf12e46d6ad3c33312fdc7bd4649be47c3/src/earwigbot/wiki/copyvios/parsers.py#L154
 def strip_code(wikicode):
-    for node in wikicode.filter(matches=_bad_types, recursive=False):
+    # Lists to collect nodes for various removal or processing operations
+    bad_prefixes = ("file:", "image:", "category:")
+    bad_tags = ("ref", "table", "gallery", "img", "figure", "figcaption")    
+    nodes_to_remove = []
+    tags_to_process = []
+    headings_to_process = []
+
+    # Single pass over top-level nodes to classify them
+    for node in wikicode.filter(recursive=False):
+        # Collect nodes that are not of the desired types for removal
+        if not isinstance(node, (Tag, Heading, Wikilink, Text)):
+            nodes_to_remove.append(node)
+        # Check for Wikilinks with File: or Category: or Image: prefixes
+        elif isinstance(node, Wikilink):
+            title_str = str(node.title).strip().lower()
+            if title_str.startswith(bad_prefixes):
+                nodes_to_remove.append(node)
+        # Check for empty Text nodes
+        elif isinstance(node, Text):
+            if not node.value.strip() or node.value.strip().lower().startswith(bad_prefixes):
+                nodes_to_remove.append(node)
+        # Collect Tag nodes for special handling later
+        elif isinstance(node, Tag):
+            if node.tag in bad_tags:
+                nodes_to_remove.append(node)
+            else:
+                tags_to_process.append(node)
+        elif isinstance(node, Heading):
+            headings_to_process.append(node)
+
+    # Remove nodes identified for removal in the first pass
+    for node in nodes_to_remove:
         wikicode.remove(node)
-    for node in wikicode.filter_wikilinks(matches=_bad_link, recursive=False):
-        wikicode.remove(node)
-    for node in wikicode.filter_text(matches=_bad_text, recursive=False):
-        wikicode.remove(node)
-    for node in wikicode.filter_tags(recursive=False):
-        bad_tags = ("ref", "table", "gallery")
-        if node.tag in bad_tags:
-            wikicode.remove(node)
-        elif len(node._contents.nodes) == 0:
+
+    # Process Tag nodes separately
+    for node in tags_to_process:
+        # Ensure the node still exists in wikicode before processing
+        # because previous removals might have affected it
+        if node not in wikicode:
+            continue
+        if len(node.contents.nodes) == 0:
             wikicode.remove(node)
         else:
-            # Need to make sure not stripping links.
             idx = wikicode.index(node)
-            new_contents = strip_code(copy.deepcopy(node._contents))
+            new_contents = strip_code(copy.deepcopy(node.contents))
             if len(new_contents.nodes) == 0:
                 wikicode.remove(node)
             elif len(new_contents.nodes) == 1:
@@ -54,19 +84,29 @@ def strip_code(wikicode):
                 wikicode.remove(node)
                 for offset, child in enumerate(new_contents.nodes):
                     wikicode.insert(idx + offset, child)
+    
+    for node in headings_to_process:
+        if node not in wikicode:
+            continue
+        idx = wikicode.index(node)
+        new_title = strip_code(copy.deepcopy(node.title))
+        node.title = new_title
+        wikicode.set(idx, node)
+
     return wikicode
 
-def get_sections(wikicode, section_spans):
+def get_sections(wikicode, header_spans):
     sections = wikicode.get_sections(flat=True, include_lead=True, levels=[2, 3, 4, 5, 6])
     flat_list = []
-
+    header_idx = 0
     for section in sections:
         headings = section.filter_headings()
         if headings:
             section_title = headings[0].title.strip()
             heading_level = headings[0].level
-            section_start = section_spans[section_title]["begin"]
+            section_start = header_spans[f"{section_title}:{heading_level}:{header_idx}"]["begin"]
             section_end = section_start
+            header_idx += 1
         else:
             # This is the lead (no heading)
             section_title = "Lead"
@@ -88,30 +128,40 @@ def get_sections(wikicode, section_spans):
 
     return flat_list
 
-def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, Wikicode, List[Dict], List[Dict], bool], None, None]:
+def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
+    # skip = True
     for page in mwxml.Dump.from_file(dump_file):
+        start_time = time.time()
         id, title, redirect = page.id, page.title, page.redirect
+        # if page.id == 624:
+        #     skip = False
+        # if skip:
+        #     continue
         if redirect:
-            yield id, title, None, [], None, True
+            yield id, title, "", [], None, True, start_time, ""
         else:
-            last_revision = None
-            for revision in page:
-                last_revision = revision
-            text = last_revision.text
-            wikicode = mwparserfromhell.parse(text)
-            wikicode = strip_code(wikicode)
+            try:
+                last_revision = None
+                for revision in page:
+                    last_revision = revision
+                text = last_revision.text
+                wikicode = mwparserfromhell.parse(text)
+                wikicode = strip_code(wikicode)
+                wikicode, links, header_spans = find_wikilinks_spans(wikicode)
+                sections = get_sections(wikicode, header_spans)
 
-            wikicode, links, header_spans = find_wikilinks_spans(wikicode) # convert spans to links
-            
-            sections = get_sections(copy.deepcopy(wikicode), header_spans)
+                for link in links:
+                    assert(str(wikicode)[link["begin"]:link["end"]] == link["text"])
 
-            for link in links:
-                assert(str(wikicode)[link["begin"]:link["end"]] == link["text"])
+                for section in sections:
+                    assert(str(wikicode)[section["begin"]:section["end"]] == section["content"])
 
-            for section in sections:
-                assert(str(wikicode)[section["begin"]:section["end"]] == section["content"])
+                yield id, title, str(wikicode), sections, links, False, start_time, ""
+            except Exception as e:
+                # We propagate the error so we can record the problematic pages and continue.
+                yield id, title, "", [], None, False, start_time, traceback.format_exc()
 
-            yield id, title, wikicode, sections, links, False
+
 
 def parse_link(link: dict) -> Tuple[int, int, str, str]:
     return int(link['begin']), int(link['end']), link['link'], link['text']
@@ -149,7 +199,7 @@ def find_wikilinks_spans(wikicode):
     entity_spans = []
     header_spans = {}
     current_pos = 0  # Tracks the aggregated position in the text
-
+    heading_idx = 0
     for i, node in enumerate(wikicode.nodes):
         # Process Wikilinks
         if isinstance(node, Wikilink):
@@ -189,7 +239,8 @@ def find_wikilinks_spans(wikicode):
             # Set the header span after updating Wikilinks.
             node_text = str(node)
             node_length = len(node_text)
-            header_spans[node.title.strip()] = {'begin': current_pos}
+            header_spans[f"{node.title.strip()}:{node.level}:{heading_idx}"] = {'begin': current_pos}
+            heading_idx += 1
 
         else:
             node_text = str(node)
@@ -208,15 +259,20 @@ def write(dump_file_path: str, out_base_path: str, device: str):
                'word_count': 0,
                'article_count': 0,
                'redirect_count': 0,
-               'entity_count': 0
+               'entity_count': 0,
+               'error': 0,
               }
-    for id, title, wikicode, sections, links, is_redirect in parse_wikipedia_dump(dump_file_path):
-        entities = []
-        text = str(wikicode)
-        metrics['redirect_count'] += is_redirect
-
-        if not is_redirect:
+    for id, title, text, sections, links, is_redirect, start_time, error in parse_wikipedia_dump(dump_file_path):
+        if len(error) > 0:
+            print(f"FAILED TO PARSE FILE -- page: {id}, title: {title}, error: {error}")
+            metrics['error'] += 1
+            writer.write({"src_file": dump_file_path, "id": id, "title": title, "error": error})
+        if is_redirect:
+            metrics['redirect_count'] += 1
+            writer.write({"src_file": dump_file_path, "id": id, "title": title, "is_redirect": True})
+        else:            
             # Only normal pages have entities.
+            entities = []
             coref_clusters = get_coref_clusters(coref, [text])[0]
             for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
                 entities.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
@@ -228,12 +284,12 @@ def write(dump_file_path: str, out_base_path: str, device: str):
             metrics['word_count'] += len(text.split(' '))
             metrics['article_count'] += 1
             metrics['entity_count'] += len(entities)
+            writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": entities, 'sections': sections})
         
-        writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": entities, 'is_redirect': is_redirect, 'sections': sections})
+        end_time = time.time()
+        wandb.log({**metrics, 'iteration_time': end_time - start_time})
     
     writer.close()
-    with open(writer.out_base_path + '_metrics.json', 'w') as f:
-        json.dump(metrics, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -241,5 +297,8 @@ if __name__ == '__main__':
     parser.add_argument("--output", type=str)
     parser.add_argument('--device', type=str, default='cuda:0')
     args = parser.parse_args()
+
+    wandb.login()
+    run = wandb.init(project="process_wiki_dump", name=os.path.basename(args.dump_file))
 
     write(args.dump_file, args.output, args.device)
