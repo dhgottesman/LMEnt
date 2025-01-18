@@ -16,17 +16,6 @@ import os
 import traceback
 
 
-def _bad_text(text):
-    bad_prefixes = ("file:", "image:", "category:")
-    return len(str(text).strip()) == 0 or str(text).strip().lower().startswith(bad_prefixes)
-
-def _bad_link(link):
-    bad_prefixes = ("file:", "image:", "category:")
-    return str(link.title).strip().lower().startswith(bad_prefixes)
-
-def _bad_types(node):
-    return not(isinstance(node, Tag) or isinstance(node, Heading) or isinstance(node, Wikilink) or isinstance(node, Text))
-
 # Inspo taken from: https://github.com/earwig/earwigbot/blob/dfae10cf12e46d6ad3c33312fdc7bd4649be47c3/src/earwigbot/wiki/copyvios/parsers.py#L154
 def strip_code(wikicode):
     # Lists to collect nodes for various removal or processing operations
@@ -128,73 +117,6 @@ def get_sections(wikicode, header_spans):
 
     return flat_list
 
-def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
-    # skip = True
-    for page in mwxml.Dump.from_file(dump_file):
-        start_time = time.time()
-        id, title, redirect = page.id, page.title, page.redirect
-        # if page.id == 624:
-        #     skip = False
-        # if skip:
-        #     continue
-        if redirect:
-            yield id, title, "", [], None, True, start_time, ""
-        else:
-            try:
-                last_revision = None
-                for revision in page:
-                    last_revision = revision
-                text = last_revision.text
-                wikicode = mwparserfromhell.parse(text)
-                wikicode = strip_code(wikicode)
-                wikicode, links, header_spans = find_wikilinks_spans(wikicode)
-                sections = get_sections(wikicode, header_spans)
-
-                for link in links:
-                    assert(str(wikicode)[link["begin"]:link["end"]] == link["text"])
-
-                for section in sections:
-                    assert(str(wikicode)[section["begin"]:section["end"]] == section["content"])
-
-                yield id, title, str(wikicode), sections, links, False, start_time, ""
-            except Exception as e:
-                # We propagate the error so we can record the problematic pages and continue.
-                yield id, title, "", [], None, False, start_time, traceback.format_exc()
-
-
-
-def parse_link(link: dict) -> Tuple[int, int, str, str]:
-    return int(link['begin']), int(link['end']), link['link'], link['text']
-
-def is_coref_cluster_linked(link_start: int, link_end: int, coref_entity_cluster: Tuple[Tuple[int, int],...]) -> bool:
-    for entity_start, entity_end in coref_entity_cluster:
-        if link_start >= entity_start and link_end <= entity_end:
-            return True
-
-    return False
-
-def get_coref_clusters(coref: FCoref, texts: List[str], as_strings=False) -> List[List[Tuple[Tuple[int, int],...]]]:
-    return [x.get_clusters(as_strings=as_strings) for x in coref.predict(texts, max_tokens_in_batch=100000)]
-
-def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], links: List[Dict]) -> Generator[Tuple[int, int, str], None, None]:
-    for link in links:
-        found = False
-        link_start, link_end, entity_name, link_text = parse_link(link)
-        for entity_cluster in coref_clusters:
-            if is_coref_cluster_linked(link_start, link_end, entity_cluster):
-                # We have a link that's contained within a span of a coref cluster, meaning the whole cluster is related to that link
-                for entity_start, entity_end in entity_cluster:
-                    yield (entity_start, entity_end, entity_name)
-
-                # Remove the cluster from the list so we don't double count
-                coref_clusters.remove(entity_cluster)
-
-                found = True
-                break
-
-        if not found:
-            yield (link_start, link_end, entity_name)
-
 def find_wikilinks_spans(wikicode):
     entity_spans = []
     header_spans = {}
@@ -250,6 +172,66 @@ def find_wikilinks_spans(wikicode):
 
     return wikicode, entity_spans, header_spans
 
+def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
+    for page in mwxml.Dump.from_file(dump_file):
+        start_time = time.time()
+        id, title, redirect = page.id, page.title, page.redirect
+        if redirect:
+            yield id, title, "", [], None, True, start_time, ""
+        else:
+            try:
+                last_revision = None
+                for revision in page:
+                    last_revision = revision
+                text = last_revision.text
+                wikicode = mwparserfromhell.parse(text)
+                wikicode = strip_code(wikicode)
+                wikicode, links, header_spans = find_wikilinks_spans(wikicode)
+                sections = get_sections(wikicode, header_spans)
+
+                for link in links:
+                    assert(str(wikicode)[link["begin"]:link["end"]] == link["text"])
+
+                for section in sections:
+                    assert(str(wikicode)[section["begin"]:section["end"]] == section["content"])
+
+                yield id, title, str(wikicode), sections, links, False, start_time, ""
+            except Exception as e:
+                # We propagate the error so we can record the problematic pages and continue.
+                yield id, title, "", [], None, False, start_time, traceback.format_exc()
+
+def parse_link(link: dict) -> Tuple[int, int, str, str]:
+    return int(link['begin']), int(link['end']), link['link'], link['text']
+
+def is_coref_cluster_linked(link_start: int, link_end: int, coref_entity_cluster: Tuple[Tuple[int, int],...]) -> bool:
+    for entity_start, entity_end in coref_entity_cluster:
+        if link_start >= entity_start and link_end <= entity_end:
+            return True
+
+    return False
+
+def get_coref_clusters(coref: FCoref, texts: List[str], as_strings=False) -> List[List[Tuple[Tuple[int, int],...]]]:
+    return [x.get_clusters(as_strings=as_strings) for x in coref.predict(texts, max_tokens_in_batch=100000)]
+
+def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], links: List[Dict]) -> Generator[Tuple[int, int, str], None, None]:
+    for link in links:
+        found = False
+        link_start, link_end, entity_name, link_text = parse_link(link)
+        for entity_cluster in coref_clusters:
+            if is_coref_cluster_linked(link_start, link_end, entity_cluster):
+                # We have a link that's contained within a span of a coref cluster, meaning the whole cluster is related to that link
+                for entity_start, entity_end in entity_cluster:
+                    yield (entity_start, entity_end, entity_name)
+
+                # Remove the cluster from the list so we don't double count
+                coref_clusters.remove(entity_cluster)
+
+                found = True
+                break
+
+        if not found:
+            yield (link_start, link_end, entity_name)
+
 def write(dump_file_path: str, out_base_path: str, device: str):
     coref = FCoref(device=device, enable_progress_bar=True)
     writer = JsonWriter(out_base_path, verbose=True)
@@ -302,3 +284,15 @@ if __name__ == '__main__':
     run = wandb.init(project="process_wiki_dump", name=os.path.basename(args.dump_file))
 
     write(args.dump_file, args.output, args.device)
+
+"""
+When we process the parsed data, we should make sure we remove the following sections... 
+https://arxiv.org/pdf/2112.04426
+We first parse articles using mwparserfromhell5
+. We then remove sections with the following
+titles: “references”, “external links”, “sources”, “further reading”, “see also”, “citations”, and “note”. In
+the remaining sections, we remove Wikilinks and remove the following templates: “reflist”, “notelist”,
+“notelist-ua”, “notelist-lr”, “notelist-ur”, and “notelist-lg”. We also exclude objects with the “ref” or
+“table” tag and clean the remaining text with the strip_code function. Finally, we concatenate the
+title and all the sections and use \n\n to delimitate them.
+"""
