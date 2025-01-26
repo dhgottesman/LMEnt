@@ -9,11 +9,13 @@ import torch
 from tokenizers import Tokenizer
 import mwparserfromhell
 from mwparserfromhell.nodes import *
-from mwparserfromhell.wikicode import Wikicode
 import mwxml
 import wandb
 import os
+import sys
 import traceback
+import signal
+import atexit
 
 
 # Inspo taken from: https://github.com/earwig/earwigbot/blob/dfae10cf12e46d6ad3c33312fdc7bd4649be47c3/src/earwigbot/wiki/copyvios/parsers.py#L154
@@ -172,8 +174,14 @@ def find_wikilinks_spans(wikicode):
 
     return wikicode, entity_spans, header_spans
 
-def parse_wikipedia_dump(dump_file: str) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
+def parse_wikipedia_dump(dump_file: str, start_id: id) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
+    skip = True if start_id > -1 else False
     for page in mwxml.Dump.from_file(dump_file):
+        if page.id == start_id:
+            skip = False
+            continue
+        if skip:
+            continue
         start_time = time.time()
         id, title, redirect = page.id, page.title, page.redirect
         if redirect:
@@ -204,7 +212,7 @@ def parse_link(link: dict) -> Tuple[int, int, str, str]:
     return int(link['begin']), int(link['end']), link['link'], link['text']
 
 def is_coref_cluster_linked(link_start: int, link_end: int, coref_entity_cluster: Tuple[Tuple[int, int],...]) -> bool:
-    for entity_start, entity_end in coref_entity_cluster:
+    for entity_start, entity_end in [entity for entity in coref_entity_cluster if entity is not None]:
         if link_start >= entity_start and link_end <= entity_end:
             return True
 
@@ -232,9 +240,8 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
         if not found:
             yield (link_start, link_end, entity_name)
 
-def write(dump_file_path: str, out_base_path: str, device: str):
+def write(dump_file_path: str, writer: JsonWriter, device: str):
     coref = FCoref(device=device, enable_progress_bar=True)
-    writer = JsonWriter(out_base_path, verbose=True)
     tokenizer = Tokenizer.from_file("/home/morg/students/gottesman3/OLMo/olmo_data/tokenizers/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
     metrics = {'text_length': 0,
                'token_count': 0, 
@@ -244,12 +251,13 @@ def write(dump_file_path: str, out_base_path: str, device: str):
                'entity_count': 0,
                'error': 0,
               }
-    for id, title, text, sections, links, is_redirect, start_time, error in parse_wikipedia_dump(dump_file_path):
+    start_id = writer.last_processed_doc
+    for id, title, text, sections, links, is_redirect, start_time, error in parse_wikipedia_dump(dump_file_path, start_id):
         if len(error) > 0:
             print(f"FAILED TO PARSE FILE -- page: {id}, title: {title}, error: {error}")
             metrics['error'] += 1
             writer.write({"src_file": dump_file_path, "id": id, "title": title, "error": error})
-        if is_redirect:
+        elif is_redirect:
             metrics['redirect_count'] += 1
             writer.write({"src_file": dump_file_path, "id": id, "title": title, "is_redirect": True})
         else:            
@@ -271,7 +279,23 @@ def write(dump_file_path: str, out_base_path: str, device: str):
         end_time = time.time()
         wandb.log({**metrics, 'iteration_time': end_time - start_time})
     
-    writer.close()
+
+def global_exception_handler(writer):
+    def _global_exception_handler(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, torch.cuda.OutOfMemoryError):
+            print("Global Handler: Caught CUDA Out of Memory Error.")
+            print("Exception details:")
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            writer.cleanup()
+        else:
+            # Optionally handle other exceptions or pass them to the default handler
+            print("Global Handler: Caught an exception.")
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            writer.cleanup()
+        # Call the default excepthook to ensure standard behavior
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    return _global_exception_handler
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -279,12 +303,26 @@ if __name__ == '__main__':
     parser.add_argument("--output", type=str)
     parser.add_argument('--device', type=str, default='cuda:0')
     args = parser.parse_args()
-
+    
     wandb.login()
     run = wandb.init(project="process_wiki_dump", name=os.path.basename(args.dump_file))
+    
+    writer = JsonWriter(args.output, verbose=True)
 
-    write(args.dump_file, args.output, args.device)
+    handler = global_exception_handler(writer)
+    # Register the exception handler
+    sys.excepthook = handler
+    # Register the signal handler for SIGINT (Ctrl+C)
+    signal.signal(signal.SIGINT, writer.close)
+    signal.signal(signal.SIGTERM, writer.close)
+    # Register the cleanup function
+    atexit.register(writer.close)
 
+    try:
+        write(args.dump_file, writer, args.device)
+    except:
+        writer.cleanup()
+        
 """
 When we process the parsed data, we should make sure we remove the following sections... 
 https://arxiv.org/pdf/2112.04426
