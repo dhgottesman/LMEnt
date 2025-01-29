@@ -25,6 +25,8 @@ class JsonWriter:
         self.chunk_num = len(files)
         if self.chunk_num > 0:
             self.chunk_num -= 1  # Decrement to get the last existing chunk
+            if os.path.exists(self.path):  # The final path was written and we are ready for a rollover
+                self.chunk_num += 1
 
     def _open_chunk(self):
         # Check if the temporary file already exists and open it in append mode if it does
@@ -34,7 +36,18 @@ class JsonWriter:
                 for line in jsonlines.Reader(f):
                     self.num_writes += 1 # Count existing lines
                     self.last_processed_doc = line.get("id")
+                # Temporary file exists but it is empty
+                if self.num_writes == 0 and self.chunk_num > 0:
+                    assert(os.path.exists(self.last_committed_path))
+                    with gzip.open(self.last_committed_path, 'rb') as f:
+                        for line in jsonlines.Reader(f):
+                            self.last_processed_doc = line.get("id")
             self.file = gzip.open(self.temporary_path, 'at')  # Open in append mode
+        elif os.path.exists(self.last_committed_path):
+            with gzip.open(self.last_committed_path, 'rb') as f:
+                for line in jsonlines.Reader(f):
+                    self.last_processed_doc = line.get("id")
+            self.file = gzip.open(self.temporary_path, 'wt')
         else:
             self.file = gzip.open(self.temporary_path, 'wt')
         self.writer = jsonlines.Writer(self.file, flush=True)
@@ -42,6 +55,10 @@ class JsonWriter:
     def _log(self, msg):
         if self.verbose:
             print(msg)
+
+    @property
+    def last_committed_path(self):
+        return f"{self.base_path}_{self.chunk_num - 1}.jsonl.gz"
 
     @property
     def path(self):
