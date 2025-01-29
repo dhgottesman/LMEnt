@@ -33,7 +33,7 @@ class JsonWriter:
                 self.num_writes = 0
                 for line in jsonlines.Reader(f):
                     self.num_writes += 1 # Count existing lines
-                self.last_processed_doc = line.get("id")
+                    self.last_processed_doc = line.get("id")
             self.file = gzip.open(self.temporary_path, 'at')  # Open in append mode
         else:
             self.file = gzip.open(self.temporary_path, 'wt')

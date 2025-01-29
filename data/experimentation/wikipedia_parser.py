@@ -242,7 +242,7 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
 
 def write(dump_file_path: str, writer: JsonWriter, device: str):
     coref = FCoref(device=device, enable_progress_bar=True)
-    tokenizer = Tokenizer.from_file("/home/morg/students/gottesman3/OLMo/olmo_data/tokenizers/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
+    tokenizer = Tokenizer.from_file("/work1/mgeva/dhgottesman/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
     metrics = {'text_length': 0,
                'token_count': 0, 
                'word_count': 0,
@@ -261,24 +261,31 @@ def write(dump_file_path: str, writer: JsonWriter, device: str):
             metrics['redirect_count'] += 1
             writer.write({"src_file": dump_file_path, "id": id, "title": title, "is_redirect": True})
         else:            
-            # Only normal pages have entities.
-            entities = []
-            coref_clusters = get_coref_clusters(coref, [text])[0]
-            for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
-                entities.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
-            del coref_clusters    
-            torch.cuda.empty_cache()
+            try:
+                # Only normal pages have entities.
+                entities = []
+                coref_clusters = get_coref_clusters(coref, [text])[0]
+                for entity_start, entity_end, entity_name in get_all_linked_entities(coref_clusters, links):
+                    entities.append({"entity_start": entity_start, "entity_end": entity_end, "entity_name": entity_name})
+                del coref_clusters    
+                torch.cuda.empty_cache()
             
-            metrics['text_length'] += len(text)
-            metrics['token_count'] += len(tokenizer.encode(text))
-            metrics['word_count'] += len(text.split(' '))
-            metrics['article_count'] += 1
-            metrics['entity_count'] += len(entities)
-            writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": entities, 'sections': sections})
-        
+                metrics['text_length'] += len(text)
+                metrics['token_count'] += len(tokenizer.encode(text))
+                metrics['word_count'] += len(text.split(' '))
+                metrics['article_count'] += 1
+                metrics['entity_count'] += len(entities)
+                writer.write({"src_file": dump_file_path, "id": id, "text": text, "title": title, "entities": entities, 'sections': sections})
+            except Exception as e:
+                error = traceback.format_exc()
+                print(f"FAILED TO PARSE FILE -- page: {id}, title: {title}, error: {error}")
+                metrics['error'] += 1
+                writer.write({"src_file": dump_file_path, "id": id, "title": title, "error": error})
+
         end_time = time.time()
         wandb.log({**metrics, 'iteration_time': end_time - start_time})
     
+    writer.close()    
 
 def global_exception_handler(writer):
     def _global_exception_handler(exc_type, exc_value, exc_traceback):
@@ -313,14 +320,14 @@ if __name__ == '__main__':
     # Register the exception handler
     sys.excepthook = handler
     # Register the signal handler for SIGINT (Ctrl+C)
-    signal.signal(signal.SIGINT, writer.close)
-    signal.signal(signal.SIGTERM, writer.close)
-    # Register the cleanup function
-    atexit.register(writer.close)
+    signal.signal(signal.SIGINT, writer.cleanup)
+    signal.signal(signal.SIGTERM, writer.cleanup)
 
     try:
         write(args.dump_file, writer, args.device)
-    except:
+    except Exception as e:
+        stack_trace = traceback.format_exc()
+        print(stack_trace)
         writer.cleanup()
         
 """
