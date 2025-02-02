@@ -6,7 +6,7 @@ import jsonlines
 DEFAULT_MAX_CHUNK_SIZE_BYTES = 1024 * 1024 * 1024 # 1 GB
 
 class JsonWriter:
-    def __init__(self, base_path, chunk_test_interval=10000, max_chunk_size_bytes=DEFAULT_MAX_CHUNK_SIZE_BYTES, verbose=False):
+    def __init__(self, base_path, chunk_test_interval=10000, max_chunk_size_bytes=DEFAULT_MAX_CHUNK_SIZE_BYTES, verbose=True):
         self.base_path = base_path
 
         self.chunk_num = 0 
@@ -70,12 +70,12 @@ class JsonWriter:
 
     def write(self, data):
         self.writer.write(data)
-
         self.num_writes += 1
 
         if self.num_writes % self.chunk_test_interval == 0:
             self._log("Flushing and checking chunk size")
             self.file.flush()
+            os.fsync(self.file.fileno())
 
             if os.path.getsize(self.temporary_path) >= self.max_chunk_size_bytes:
                 self._log("Performing chunk rollover")
@@ -85,6 +85,7 @@ class JsonWriter:
 
     def cleanup(self):
         self.file.flush()
+        os.fsync(self.file.fileno())
         self.writer.close()
         self.file.close()
 

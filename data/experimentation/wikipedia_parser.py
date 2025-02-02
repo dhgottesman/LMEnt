@@ -175,6 +175,7 @@ def find_wikilinks_spans(wikicode):
     return wikicode, entity_spans, header_spans
 
 def parse_wikipedia_dump(dump_file: str, start_id: id) -> Generator[Tuple[str, str, str, List[Dict], List[Dict], bool, float, str], None, None]:
+    print(f"Starting after {start_id}")
     skip = True if start_id > -1 else False
     for page in mwxml.Dump.from_file(dump_file):
         if page.id == start_id:
@@ -241,6 +242,7 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
             yield (link_start, link_end, entity_name)
 
 def write(dump_file_path: str, writer: JsonWriter, device: str):
+    print(f"Writing to {writer.file.name}")
     coref = FCoref(device=device, enable_progress_bar=True)
     tokenizer = Tokenizer.from_file("/work1/mgeva/dhgottesman/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
     metrics = {'text_length': 0,
