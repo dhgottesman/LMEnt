@@ -244,7 +244,7 @@ def get_all_linked_entities(coref_clusters: List[Tuple[Tuple[int, int],...]], li
 def write(dump_file_path: str, writer: JsonWriter, device: str):
     print(f"Writing to {writer.file.name}")
     coref = FCoref(device=device, enable_progress_bar=True)
-    tokenizer = Tokenizer.from_file("/work1/mgeva/dhgottesman/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
+    tokenizer = Tokenizer.from_file("/home/morg/students/gottesman3/OLMo/olmo_data/tokenizers/allenai_eleuther-ai-gpt-neox-20b-pii-special.json")
     metrics = {'text_length': 0,
                'token_count': 0, 
                'word_count': 0,
