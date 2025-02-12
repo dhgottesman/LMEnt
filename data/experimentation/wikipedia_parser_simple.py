@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass, field
 from copy import deepcopy
 from json_writer import JsonWriter
 from typing import Dict, Generator, List, Tuple, NamedTuple, Optional
@@ -177,12 +178,13 @@ def get_sections(wikicode, cleaned_text):
 
     return flat_list
 
-class WikipediaPageOutput(NamedTuple):
+@dataclass
+class WikipediaPageOutput:
     id: str                               # Page ID
     title: str                            # Page title
     text: str = ""                        # Cleaned article text
-    sections: List[Dict] = []             # List of section dictionaries
-    entities: List[Dict] = []             # List of entity dictionaries (can be None)
+    sections: List[Dict] = field(default_factory=list)  # List of section dictionaries
+    entities: List[Dict] = field(default_factory=list)  # List of entity dictionaries (can be None)
     namespace: str = ""                   # Namespace for non-article pages (disambiguation, etc.)
     start_time: float = 0.0               # Timestamp when processing started
     error: str = ""                       # Error message if an error occurred
@@ -260,12 +262,21 @@ def write(dump_file_path: str, writer: JsonWriter):
             try:
                 tokens = tokenizer.encode(output.text)
             except Exception as e:
-                output.text = output.text.encode('utf-8','ignore').decode('utf-8')
+                output.text = output.text.encode('utf-8','replace').decode('utf-8')
                 tokens = tokenizer.encode(output.text)
                 warning = f"WARNING -- removed tokens that aren't compliant with utf-8"
             metrics[f'{namespace}_token_count'] += len(tokens)
             
-            record = {"src_file": dump_file_path, "id": output.id, 'namespace': output.namespace, "text": output.text, "title": output.title, "entities": output.entities, 'sections': output.sections}
+            record = {
+                "src_file": dump_file_path, 
+                "id": output.id, 
+                "namespace": output.namespace, 
+                "text": output.text, 
+                "title": output.title, 
+                "entities": output.entities, 
+                "sections": output.sections
+            }
+            
             if len(warning) > 0:
                 record["warning"] = warning
             

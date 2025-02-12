@@ -42,14 +42,14 @@ class JsonWriter:
                     with gzip.open(self.last_committed_path, 'rb') as f:
                         for line in jsonlines.Reader(f):
                             self.last_processed_doc = line.get("id")
-            self.file = gzip.open(self.temporary_path, 'at')  # Open in append mode
+            self.file = gzip.open(self.temporary_path, 'at', errors='replace')  # Open in append mode
         elif os.path.exists(self.last_committed_path):
             with gzip.open(self.last_committed_path, 'rb') as f:
                 for line in jsonlines.Reader(f):
                     self.last_processed_doc = line.get("id")
-            self.file = gzip.open(self.temporary_path, 'wt')
+            self.file = gzip.open(self.temporary_path, 'wt', errors='replace')
         else:
-            self.file = gzip.open(self.temporary_path, 'wt')
+            self.file = gzip.open(self.temporary_path, 'wt', errors='replace')
         self.writer = jsonlines.Writer(self.file, flush=True)
 
     def _log(self, msg):
