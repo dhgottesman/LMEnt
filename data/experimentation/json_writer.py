@@ -6,7 +6,7 @@ import jsonlines
 DEFAULT_MAX_CHUNK_SIZE_BYTES = 1024 * 1024 * 1024 # 1 GB
 
 class JsonWriter:
-    def __init__(self, base_path, chunk_test_interval=10000, max_chunk_size_bytes=DEFAULT_MAX_CHUNK_SIZE_BYTES, verbose=True):
+    def __init__(self, base_path, chunk_test_interval=600000, max_chunk_size_bytes=DEFAULT_MAX_CHUNK_SIZE_BYTES, verbose=True):
         self.base_path = base_path
 
         self.chunk_num = 0 
