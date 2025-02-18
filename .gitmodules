@@ -1,3 +1,9 @@
 [submodule "TinyLlama"]
 	path = TinyLlama
 	url = https://github.com/ido-co/TinyLlama.git
+[submodule "OLMo"]
+	path = OLMo
+	url = https://github.com/dhgottesman/OLMo.git
+[submodule "dolma"]
+	path = dolma
+	url = https://github.com/dhgottesman/dolma.git
