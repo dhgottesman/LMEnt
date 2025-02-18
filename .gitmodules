@@ -1,12 +1,9 @@
-[submodule "dclm"]
-	path = dclm
-	url = https://github.com/ido-co/dclm
 [submodule "TinyLlama"]
 	path = TinyLlama
 	url = https://github.com/ido-co/TinyLlama.git
 [submodule "dolma"]
 	path = dolma
-	url = https://github.com/allenai/dolma.git
+	url = https://github.com/ido-co/dolma.git
 [submodule "OLMo"]
 	path = OLMo
-	url = https://github.com/allenai/OLMo.git
+	url = https://github.com/ido-co/OLMo.git
