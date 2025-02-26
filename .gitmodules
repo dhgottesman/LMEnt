@@ -7,3 +7,6 @@
 [submodule "dolma"]
 	path = dolma
 	url = https://github.com/dhgottesman/dolma.git
+[submodule "OLMo-core"]
+	path = OLMo-core
+	url = https://github.com/dhgottesman/OLMo-core.git
