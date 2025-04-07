@@ -10,6 +10,9 @@
 [submodule "OLMo-core"]
 	path = OLMo-core
 	url = https://github.com/dhgottesman/OLMo-core.git
+[submodule "WEXEA"]
+	path = WEXEA
+	url = https://github.com/ad-freiburg/WEXEA.git
 [submodule "olmes"]
 	path = olmes
 	url = https://github.com/dhgottesman/olmes.git

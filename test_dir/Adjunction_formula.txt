@@ -1,0 +1,68 @@
+In [[mathematics]], especially in [[algebraic geometry]] and the theory of [[complex manifolds]], the [[Adjunction formula|adjunction formula]] relates the [[canonical bundle]] of a variety and a [[hypersurface]] inside that variety. It is often used to deduce facts about varieties embedded in well-behaved spaces such as [[projective space]] or to prove theorems by induction.
+
+== Adjunction for smooth varieties ==
+
+===Formula for a smooth subvariety===
+Let "X" be a [[smooth scheme|smooth]] algebraic variety or smooth complex manifold and "Y" be a smooth subvariety of "X". Denote the inclusion map by "i" and the [[ideal sheaf]] of "Y" in "X" by . The [[conormal exact sequence]] for "i" is
+where Ω denotes a [[cotangent bundle]]. The determinant of this exact sequence is a natural isomorphism
+where denotes the dual of a line bundle.
+
+===The particular case of a smooth divisor===
+Suppose that "D" is a smooth [[divisor (algebraic geometry)|divisor]] on "X". Its [[normal bundle]] extends to a [[line bundle]] on "X", and the ideal sheaf of "D" corresponds to its dual . The conormal bundle is , which, combined with the formula above, gives
+In terms of canonical classes, this says that
+Both of these two formulas are called the adjunction formula.
+
+== Examples ==
+
+=== Degree d hypersurfaces ===
+Given a smooth degree hypersurface we can compute its canonical and anti-canonical bundles using the adjunction formula. This reads aswhich is isomorphic to .
+
+=== Complete intersections ===
+For a smooth complete intersection of degrees , the conormal bundle is isomorphic to , so the determinant bundle is and its dual is , showingThis generalizes in the same fashion for all complete intersections.
+
+=== Curves in a quadric surface ===
+ embeds into as a quadric surface given by the vanishing locus of a quadratic polynomial coming from a non-singular symmetric matrix. We can then restrict our attention to curves on . We can compute the cotangent bundle of using the direct sum of the cotangent bundles on each , so it is . Then, the canonical sheaf is given by , which can be found using the decomposition of wedges of direct sums of vector bundles. Then, using the adjunction formula, a curve defined by the vanishing locus of a section , can be computed as
+\omega_C \,\cong\, \mathcal{O}(-2,-2)\otimes \mathcal{O}_C(a,b) \,\cong\, \mathcal{O}_C(a{-}2, b{-}2).
+
+== Poincaré residue ==
+
+The restriction map is called the Poincaré residue. Suppose that "X" is a complex manifold. Then on sections, the Poincaré residue can be expressed as follows. Fix an open set "U" on which "D" is given by the vanishing of a function "f". Any section over "U" of can be written as "s"/"f", where "s" is a holomorphic function on "U". Let η be a section over "U" of ω"X". The Poincaré residue is the map
+that is, it is formed by applying the vector field ∂/∂"f" to the volume form η, then multiplying by the holomorphic function "s". If "U" admits local coordinates "z"1, ..., "z'n" such that for some "i", ∂"f"/∂"z'i" ≠ 0, then this can also be expressed as
+
+Another way of viewing Poincaré residue first reinterprets the adjunction formula as an isomorphism
+On an open set "U" as before, a section of is the product of a holomorphic function "s" with the form . The Poincaré residue is the map that takes the wedge product of a section of ω"D" and a section of .
+
+== Inversion of adjunction ==
+The adjunction formula is false when the conormal exact sequence is not a short exact sequence. However, it is possible to use this failure to relate the singularities of "X" with the singularities of "D". Theorems of this type are called inversion of adjunction. They are an important tool in modern birational geometry.
+
+==The Canonical Divisor of a Plane Curve==
+Let be a smooth plane curve cut out by a degree homogeneous polynomial . We claim that the canonical divisor is where is the hyperplane divisor.
+
+First work in the affine chart . The equation becomes where and .
+We will explicitly compute the divisor of the differential
+
+At any point either so is a local parameter or
+ so is a local parameter.
+In both cases the order of vanishing of at the point is zero. Thus all contributions to the divisor are at the line at infinity, .
+
+Now look on the line . Assume that so it suffices to look in the chart with coordinates and . The equation of the curve becomes 
+
+Hence 
+
+so 
+
+with order of vanishing . Hence which agrees with the adjunction formula.
+
+== Applications to curves==
+The [[genus-degree formula]] for plane curves can be deduced from the adjunction formula. Let "C" ⊂ P2 be a smooth plane curve of degree "d" and genus "g". Let "H" be the class of a hyperplane in P2, that is, the class of a line. The canonical class of P2 is &minus;3"H". Consequently, the adjunction formula says that the restriction of to "C" equals the canonical class of "C". This restriction is the same as the intersection product restricted to "C", and so the degree of the canonical class of "C" is . By the [[Riemann–Roch theorem]], "g" &minus; 1 = ("d"&minus;3)"d" &minus; "g" + 1, which implies the formula
+
+Similarly, if "C" is a smooth curve on the quadric surface P1×P1 with bidegree ("d"1,"d"2) (meaning "d"1,"d"2 are its intersection degrees with a fiber of each projection to P1), since the canonical class of P1×P1 has bidegree (&minus;2,&minus;2), the adjunction formula shows that the canonical class of "C" is the intersection product of divisors of bidegrees ("d"1,"d"2) and ("d"1&minus;2,"d"2&minus;2). The intersection form on P1×P1 is by definition of the bidegree and by bilinearity, so applying Riemann–Roch gives or
+
+The genus of a curve "C" which is the [[complete intersection]] of two surfaces "D" and "E" in P3 can also be computed using the adjunction formula. Suppose that "d" and "e" are the degrees of "D" and "E", respectively. Applying the adjunction formula to "D" shows that its canonical divisor is , which is the intersection product of and "D". Doing this again with "E", which is possible because "C" is a complete intersection, shows that the canonical divisor "C" is the product , that is, it has degree . By the Riemann–Roch theorem, this implies that the genus of "C" is
+More generally, if "C" is the complete intersection of hypersurfaces of degrees in P"n", then an inductive computation shows that the canonical class of "C" is . The Riemann–Roch theorem implies that the genus of this curve is
+
+== In low dimensional topology ==
+
+Let "S" be a complex surface (in particular a 4-dimensional manifold) and let be a smooth (non-singular) connected complex curve. Then 
+
+where is the genus of "C", denotes the self-intersections and denotes the [[Kronecker pairing]] .
