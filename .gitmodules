@@ -16,3 +16,6 @@
 [submodule "olmes"]
 	path = olmes
 	url = https://github.com/dhgottesman/olmes.git
+[submodule "maverick-coref"]
+	path = maverick-coref
+	url = git@github.com:dhgottesman/maverick-coref.git
