@@ -16,6 +16,12 @@
 [submodule "olmes"]
 	path = olmes
 	url = https://github.com/dhgottesman/olmes.git
+[submodule "ReFinED"]
+	path = ReFinED
+	url = https://github.com/dhgottesman/ReFinED.git
 [submodule "maverick-coref"]
 	path = maverick-coref
-	url = git@github.com:dhgottesman/maverick-coref.git
+	url = https://github.com/dhgottesman/maverick-coref.git
+[submodule "open-instruct"]
+	path = open-instruct
+	url = https://github.com:dhgottesman/open-instruct.git
