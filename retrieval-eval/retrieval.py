@@ -20,8 +20,6 @@ from queries import (
 
 from constants import (
     CASE_SENSITIVE_INDEX_NAME,
-    CASE_INSENSITIVE_INDEX_NAME,
-    DEFAULT_METADATA_THRESHOLDS
 )
 
 def get_entity_chunk_ids_by_string_search(
@@ -252,7 +250,7 @@ def find_entities_chunk_ids_by_metadata(
     show_progress: bool = False,
     top_k_metadata: Optional[List[int]] = None, 
     top_k_sample: Optional[int] = None,
-    batch_size: int = 1000,
+    batch_size: int = 10000,
 ) -> Dict[Union[str, Tuple[str, str]], Union[List[int], Dict[str, List[int]]]]:
     """
     Find chunk indices where specific entities appear based on metadata criteria.
@@ -274,26 +272,6 @@ def find_entities_chunk_ids_by_metadata(
         raise ValueError("entity_names must be str, tuple of two str, or list of these.")
 
     def process_entity(entity_input):
-        # Handles both single entities and pairs
-        if isinstance(entity_input, tuple) and len(entity_input) == 2:
-            entity1_label, entity2_label = entity_input
-            res1 = find_entities_chunk_ids_by_metadata(
-                entity1_label, index, es_client, 
-                thresholds=thresholds,
-                top_k_metadata=None, 
-                batch_size=batch_size
-            )
-            res2 = find_entities_chunk_ids_by_metadata(
-                entity2_label, index, es_client, 
-                thresholds=thresholds,
-                top_k_metadata=None, 
-                batch_size=batch_size
-            )
-            entity1_chunks = set(res1.get(entity1_label, []))
-            entity2_chunks = set(res2.get(entity2_label, []))
-            intersection_chunks = sorted(list(entity1_chunks.intersection(entity2_chunks)))
-            return entity_input, intersection_chunks
-
         entity_label = entity_input
         qid = get_qid_for_entity(entity_label)
         if not qid:
@@ -351,7 +329,7 @@ def find_entities_chunk_ids_by_metadata(
                 }
                 }
             },
-            "size": 10000,
+            "size": batch_size,
             "_source": [
                 "chunk_id"
             ]
