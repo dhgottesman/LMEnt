@@ -1,6 +1,3 @@
-[submodule "TinyLlama"]
-	path = TinyLlama
-	url = https://github.com/ido-co/TinyLlama.git
 [submodule "OLMo"]
 	path = OLMo
 	url = https://github.com/dhgottesman/OLMo.git
@@ -11,9 +8,6 @@
 	path = OLMo-core
 	url = https://github.com/dhgottesman/OLMo-core.git
 	branch = main
-[submodule "WEXEA"]
-	path = WEXEA
-	url = https://github.com/ad-freiburg/WEXEA.git
 [submodule "olmes"]
 	path = olmes
 	url = https://github.com/dhgottesman/olmes.git
@@ -23,6 +17,3 @@
 [submodule "maverick-coref"]
 	path = maverick-coref
 	url = https://github.com/dhgottesman/maverick-coref.git
-[submodule "open-instruct"]
-	path = open-instruct
-	url = https://github.com:dhgottesman/open-instruct.git
