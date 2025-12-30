@@ -164,11 +164,11 @@ CASE_SENSITIVE_MAPPING = {
 }
 
 
-def get_esclient(scheme="https", host="localhost", port=9200):
-    host = "132.67.130.202"
+def get_esclient(scheme="https", host="localhost", port=9200, password=""):
+    host = host
     return Elasticsearch(
         f"{scheme}://{host}:{port}", 
-        basic_auth=("elastic", "G*+2PQqsqZ2NCn5aCSoA"), 
+        basic_auth=("elastic", password), 
         request_timeout=300, 
         max_retries=10, 
         retry_on_timeout=True,
