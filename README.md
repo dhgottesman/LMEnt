@@ -76,7 +76,7 @@ To build the index from scratch, run the script `retrieval-index/create_es_index
 You can alternatively download both case-sensitive and case-insensitive pre-built indexes at [LINK].
 Please note that this tar file is **127GB**. To register the pre-built files, please follow the following steps:
 
-1. **Download and Unpack**: Unpack the [elasticsearch_lment.tar.gz file](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/blob/main/elasticsearch_lment.tar.gz) into a directory (e.g., `/mnt/elasticsearch_lment/`). The unpacked contents will contain the necessary subdirectories.
+1. **Download and Unpack**: Unpack the [elasticsearch_lment.tar.gz](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/blob/main/elasticsearch_lment.tar.gz) file into a directory (e.g., `/mnt/elasticsearch_lment/`). The unpacked contents will contain the necessary subdirectories.
 
 2. **Configure path.repo**: In `elasticsearch.yml` (sometimes under `elasticsearch-8.13.4/config/elasticsearch.yml`, set the `path.repo` to point to the parent directory of the unpacked contents (e.g., `path.repo: /mnt/elasticsearch_lment/`) and restart Elasticsearch (cd elasticsearch-8.13.4; /bin/elasticsearch).
 
