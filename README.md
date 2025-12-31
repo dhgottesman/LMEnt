@@ -15,27 +15,26 @@ conda create env -f environment.yml
 The dataset is available on [Hugging Face](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset).
 
 To set up the dataset and dataloader, please follow these steps:
-1.  Create the directory `OLMo-core/hp_final`.
-2.  Copy the `dataset-cache` directory from [this link](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/tree/main/dataset-cache) into `OLMo-core/hp_final`.
-3.  Copy the `dataset-tokenized` directory from [this link](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/tree/main/dataset-tokenized) into the root `LMEnt` directory.
-4.  Copy the `dataset-metadata` directory from [this link](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/tree/main/dataset-metadata) into the root `LMEnt` directory.
-5.  Unzip the `dataset-metadata/part-[0-7]-00000.csv.gz` files.
+1.  Download the [LMEnt-Dataset](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset) dataset.
+2.  Unzip the `LMEnt-Dataset/dataset-metadata/part-[0-7]-00000.csv.gz` files.
+3.  Run `setup.py <absolute path to LMEnt-Dataset directory>`
 
 The final directory structure should look like this: 
 ```
-dolma
-environment.yml
-maverick-coref
-olmes
-ReFiNED
-OLMo-core (submodule)
-    > hp_final
-        > dataset-cache
-README.md
-ReFinED
-retrieval-index
-dataset-metadata
-dataset-tokenized
+LMEnt
+    > dolma
+    > environment.yml
+    > maverick-coref
+    > olmes
+    > ReFiNED
+    > OLMo-core (submodule)
+    > README.md
+    > ReFinED
+    > retrieval-index
+LMEnt-Dataset
+    > dataset-cache
+    > dataset-metadata
+    > dataset-tokenized
 ```
 
 This table summarizes the disk space requirements:
