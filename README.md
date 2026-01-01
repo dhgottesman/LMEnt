@@ -75,44 +75,52 @@ To build the index from scratch, run the script `retrieval-index/create_es_index
 You can alternatively download both case-sensitive and case-insensitive pre-built indexes at [LINK].
 Please note that this tar file is **127GB**. To register the pre-built files, please follow the following steps:
 
-1. **Download and Unpack**: Unpack the [elasticsearch_lment.tar.gz](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/blob/main/elasticsearch_lment.tar.gz) file into a directory (e.g., `/mnt/elasticsearch_lment/`). The unpacked contents will contain the necessary subdirectories.
+1. **Download and Unpack**: Unpack the [elasticsearch_lment.tar.gz](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset/blob/main/elasticsearch_lment.tar.gz) file into a directory (e.g., `/path/to/elasticsearch_lment`). The unpacked contents contain the `lment` directory with the necessary files to restore the index.
 
-2. **Configure path.repo**: In `elasticsearch.yml` (sometimes under `elasticsearch-8.13.4/config/elasticsearch.yml`, set the `path.repo` to point to the parent directory of the unpacked contents (e.g., `path.repo: /mnt/elasticsearch_lment/`) and restart Elasticsearch (cd elasticsearch-8.13.4; /bin/elasticsearch).
+2. **Configure path.repo**: In `elasticsearch.yml` (sometimes under `elasticsearch-8.13.4/config/elasticsearch.yml`, set the `path.repo` to point to the parent directory of the unpacked contents (e.g., `path.repo: /path/to/elasticsearch_lment`) and restart Elasticsearch (cd elasticsearch-8.13.4; /bin/elasticsearch).
 
 3. **Register the Repository:**
 
 ```
-PUT _snapshot/lment
-{
-  "type": "fs",
-  "settings": {
-    "location": "elasticsearch_lment" 
-  }
-}
+curl -k -u 'elastic:<PASSWORD>' \
+  -H 'Content-Type: application/json' \
+  -X PUT 'https://<ELASTIC_SERVER_ADDR>:<PORT>/_snapshot/lment' \
+  -d '{
+    "type": "fs",
+    "settings": {
+      "location": "/path/to/elasticsearch_lment/lment"
+    }
+  }'
 ```
 
 4. **Restoring the Indices**:
-
+Restore the case-sensitive index:
 ```
-POST _snapshot/lment/lment/_restore?wait_for_completion=true
-{
-  "indices": "enwiki", 
-  "rename_pattern": "enwiki", 
-  "rename_replacement": "lment_enwiki_ci" 
-}
-
-POST _snapshot/lment/lment/_restore?wait_for_completion=true
-{
-  "indices": "enwiki_case_sensitive", 
-  "rename_pattern": "enwiki_case_sensitive", 
-  "rename_replacement": "lment_enwiki_cs" 
-}
+curl -k -u 'elastic:<PASSWORD>' \
+  -H 'Content-Type: application/json' \
+  -X POST 'https://<ELASTIC_SERVER_ADDR>:<PORT>/_snapshot/lment/lment/_restore?wait_for_completion=true' \
+  -d '{
+    "indices": "enwiki_case_sensitive",
+    "rename_pattern": "enwiki_case_sensitive",
+    "rename_replacement": "lment_cs",
+    "include_global_state": false
+  }'
+```
+Restore the case-insensitive index
+```
+curl -k -u 'elastic:<PASSWORD>' \
+  -H 'Content-Type: application/json' \
+  -X POST 'https://<ELASTIC_SERVER_ADDR>:<PORT>/_snapshot/lment/lment/_restore?wait_for_completion=true' \
+  -d '{
+    "indices": "enwiki",
+    "rename_pattern": "enwiki",
+    "rename_replacement": "lment_ci",
+    "include_global_state": false
+  }'
 ```
 
-- `lment_enwiki_cs`: The case sensitive index.
-- `lment_enwiki_ci`: The case insensitive index.
-
-Please refer to the README in `LMEnt/retrieval-index` for examples of entity-based retrieval queries.
+Note that case in/sensitivity is relevant only if you want to perform string-based retrieval.
+We include examples of entity-based retrieval and string-based retrieval queries in the README under `retrieval-index`.
 
 ## PopQA
 If you want to analyze learning dynamics on PopQA, you can use our [annotated dataset](https://huggingface.co/datasets/dhgottesman/popqa-kas). It includes precomputed chunk identifiers `chunk_id` from the pretraining corpus that mention the subject entity `subject_chunks`, the answer entity `answer_chunks`, and co-occuring `shared_chunks`.
