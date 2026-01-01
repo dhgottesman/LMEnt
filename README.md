@@ -124,7 +124,7 @@ curl -k -u 'elastic:<PASSWORD>' \
 > *Note that case in/sensitivity is relevant only if you want to perform string-based retrieval.
 We include examples of entity-based retrieval and string-based retrieval queries in the README under `retrieval-index`.*
 
-## PopQA
+## Analyzing Learning Dynamics
 If you want to analyze learning dynamics on PopQA, you can use our [annotated dataset](https://huggingface.co/datasets/dhgottesman/popqa-kas). It includes precomputed chunk identifiers `chunk_id` from the pretraining corpus that mention the subject entity `subject_chunks`, the answer entity `answer_chunks`, and co-occuring `shared_chunks`.
 
 **For this analysis, you don't need to download the entire pretraining dataset, you only need** `LMEnt-Dataset/dataset-cache/batch_indices.npy`.
@@ -148,5 +148,17 @@ for step, chunk_ids_in_batch in enumerate(batch_indices):
 > Chunk with chunk_id 2955255 was seen in training step 16618
 ```
 
+## Training LMEnt Models
+To kick off training LMEnt models, run `src/examples/kas/train.py <path/to/config.json>`. You need to define a `config.json` like `src/examples/kas/kas_config.json`.
 
+## Annotating Pretraining Data
+### ReFinED
+Follow the instructions in this [README](https://github.com/dhgottesman/ReFinED/blob/main/README.md) to process a raw Wikipedia dump, extract hyperlinks, and generate all required files for entity linking.
 
+Run `ReFinED/run_refined.py` with slurm using `ReFinED/run.slurm`.
+
+### Maverick
+Run `maverick-coref/run_maverick.py`with slurm using `maverick-coref/run.slurm`.
+
+## Tokenizing Pretraining Data
+Run `dolma/python/run.slurm`. TBD: Changes to merge the ReFinED and Maverick annotations need to be added.
