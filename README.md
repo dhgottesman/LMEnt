@@ -152,13 +152,16 @@ for step, chunk_ids_in_batch in enumerate(batch_indices):
 To kick off training LMEnt models, run `src/examples/kas/train.py <path/to/config.json>`. You need to define a `config.json` like `src/examples/kas/kas_config.json`.
 
 ## Annotating Pretraining Data
-### ReFinED
+### 1. ReFinED
 Follow the instructions in this [README](https://github.com/dhgottesman/ReFinED/blob/main/README.md) to process a raw Wikipedia dump, extract hyperlinks, and generate all required files for entity linking.
 
 Run `ReFinED/run_refined.py` with slurm using `ReFinED/run.slurm`.
 
-### Maverick
+### 2. Maverick
 Run `maverick-coref/run_maverick.py`with slurm using `maverick-coref/run.slurm`.
 
+### 3. Merging Annotations
+Run `aggregate_entity_annotations/run_aggregate_entity_annotations.py` on every file outputted by `maverick-coref/run_maverick.py`.
+
 ## Tokenizing Pretraining Data
-Run `dolma/python/run.slurm`. TBD: Changes to merge the ReFinED and Maverick annotations need to be added.
+Run `dolma/python/run.slurm`.
