@@ -114,7 +114,29 @@ POST _snapshot/lment/lment/_restore?wait_for_completion=true
 
 Please refer to the README in `LMEnt/retrieval-index` for examples of entity-based retrieval queries.
 
+## PopQA
+If you want to analyze learning dynamics on PopQA, you can use our [annotated dataset](https://huggingface.co/datasets/dhgottesman/popqa-kas). It includes precomputed chunk identifiers `chunk_id` from the pretraining corpus that mention the subject entity `subject_chunks`, the answer entity `answer_chunks`, and co-occuring `shared_chunks`.
 
+**For this analysis, you don't need to download the entire pretraining dataset, you only need** `LMEnt-Dataset/dataset-cache/batch_indices.npy`.
+
+To map a given chunk ID to the training step at which a model **trained for one epoch** saw that chunk, you can use the following code:
+```
+import numpy as np
+
+batch_indices = np.load(
+    "LMEnt-Dataset/dataset-cache/batch_indices.npy",
+    allow_pickle=True
+)
+
+# Example chunk identifier
+chunk_id = 2955255
+
+for step, chunk_ids_in_batch in enumerate(batch_indices):
+    if chunk_id in chunk_ids_in_batch:
+        print(f"Chunk with chunk_id {chunk_id} was seen in training step {step}")
+
+> Chunk with chunk_id 2955255 was seen in training step 16618
+```
 
 
 
