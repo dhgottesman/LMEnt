@@ -94,7 +94,8 @@ curl -k -u 'elastic:<PASSWORD>' \
 ```
 
 4. **Restoring the Indices**:
-Restore the case-sensitive index:
+
+Restore the case-sensitive index.
 ```
 curl -k -u 'elastic:<PASSWORD>' \
   -H 'Content-Type: application/json' \
@@ -106,7 +107,8 @@ curl -k -u 'elastic:<PASSWORD>' \
     "include_global_state": false
   }'
 ```
-Restore the case-insensitive index
+
+Restore the case-insensitive index.
 ```
 curl -k -u 'elastic:<PASSWORD>' \
   -H 'Content-Type: application/json' \
