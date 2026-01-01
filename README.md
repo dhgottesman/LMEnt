@@ -121,8 +121,8 @@ curl -k -u 'elastic:<PASSWORD>' \
   }'
 ```
 
-Note that case in/sensitivity is relevant only if you want to perform string-based retrieval.
-We include examples of entity-based retrieval and string-based retrieval queries in the README under `retrieval-index`.
+> *Note that case in/sensitivity is relevant only if you want to perform string-based retrieval.
+We include examples of entity-based retrieval and string-based retrieval queries in the README under `retrieval-index`.*
 
 ## PopQA
 If you want to analyze learning dynamics on PopQA, you can use our [annotated dataset](https://huggingface.co/datasets/dhgottesman/popqa-kas). It includes precomputed chunk identifiers `chunk_id` from the pretraining corpus that mention the subject entity `subject_chunks`, the answer entity `answer_chunks`, and co-occuring `shared_chunks`.
