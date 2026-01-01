@@ -22,14 +22,13 @@ To set up the dataset and dataloader, please follow these steps:
 The final directory structure should look like this: 
 ```
 LMEnt
-    > dolma
+    > dolma (submodule)
     > environment.yml
-    > maverick-coref
-    > olmes
-    > ReFiNED
+    > maverick-coref (submodule)
+    > olmes (submodule)
     > OLMo-core (submodule)
     > README.md
-    > ReFinED
+    > ReFinED (submodule)
     > retrieval-index
 LMEnt-Dataset
     > dataset-cache
