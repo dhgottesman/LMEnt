@@ -1,6 +1,16 @@
 LMENT_DATASET_PATH = $1
+LMENT_DATASET_TOKENIZED_PATH = $1/dataset-tokenized
 LMENT_DATASET_INDEX_METADATA_PATH = $1/dataset-cache/dataset-metadata
 LMENT_DATASET_COMMON_PATH = $1/dataset-cache/dataset-common
+
+echo "Decompressing .csv.gz from ${LMENT_DATASET_TOKENIZED_PATH} directly into ${LMENT_DATASET_INDEX_METADATA_PATH}"
+find "${LMENT_DATASET_TOKENIZED_PATH}" -type f -name "*.csv.gz" -print0 | while IFS= read -r -d '' gzfile; do
+  base="$(basename "${gzfile}" .gz)"   # foo.csv
+  out_csv="${LMENT_DATASET_INDEX_METADATA_PATH}/${base}"
+
+  echo "  $(basename "${gzfile}") -> ${out_csv}"
+  gzip -dc "${gzfile}" > "${out_csv}"
+done
 
 echo "Linking Metadata Index Paths in ${LMENT_DATASET_INDEX_METADATA_PATH}"
 ln -s ${LMENT_DATASET_INDEX_METADATA_PATH}/metadata-7c79c698e8357904526b9232939cc8fb2f323c626a92e3f4f6034dd1ff718f7f.npy ${LMENT_DATASET_INDEX_METADATA_PATH}/metadata-part-0-00000.npy 
