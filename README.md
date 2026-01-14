@@ -16,8 +16,7 @@ The dataset is available on [Hugging Face](https://huggingface.co/datasets/dhgot
 
 To set up the dataset and dataloader, please follow these steps:
 1.  Download the [LMEnt-Dataset](https://huggingface.co/datasets/dhgottesman/LMEnt-Dataset) dataset.
-2.  Unzip the `LMEnt-Dataset/dataset-metadata/part-[0-7]-00000.csv.gz` files.
-3.  Run `setup.py <absolute path to LMEnt-Dataset directory>`
+2.  Run `setup.py <absolute path to LMEnt-Dataset directory>`
 
 The final directory structure should look like this: 
 ```
@@ -32,17 +31,20 @@ LMEnt
     > retrieval-index
 LMEnt-Dataset
     > dataset-cache
-    > dataset-metadata
+        > batch_indices.npy
+        > dataset-metadata
+        > dataset-common
+        > dataset-348b68bc53a9e58ceab6501cae55d803c6b290615d95ac7d98cb0be4a039085d
     > dataset-tokenized
 ```
 
 This table summarizes the disk space requirements:
 
-| Step | Directory/File Set | Context | Compressed Size | Decompressed Size |
-| :--- | :--- | :--- | :--- | :--- |
-| **2** | `dataset-cache` | Used to build the dataset and dataloader. | **727 MB** | N/A |
-| **3** | `dataset-tokenized` | Tokenized and concatendated data chunks. | **15 GB** | N/A |
-| **5** | `dataset-metadata` | CSV files entity mention annotations for each data chunk. | **30 GB** | **212 GB** |
+| Directory/File Set | Context | Size |
+| :--- | :--- | :--- | :--- |
+| `dataset-cache` | Used to build the dataset and dataloader. | **727 MB** |
+| `dataset-cache/dataset-metadata` | Decompressed per-chunk metadata used for quick metadata retrieval in dataset | **212 GB** |
+| `dataset-tokenized` | Tokenized and concatenated data chunks with per-chunk metadata in `.csv.gz` files. | **47.2 GB** |
 
 ## LMEnt Models
 The models with checkpoints taken every 10K steps are available in the [Hugging Face Collection](https://huggingface.co/collections/dhgottesman/lment).
