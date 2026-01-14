@@ -40,11 +40,11 @@ LMEnt-Dataset
 
 This table summarizes the disk space requirements:
 
-| Directory/File Set | Context | Size |
-| :--- | :--- | :--- | :--- |
-| `dataset-cache` | Used to build the dataset and dataloader. | **727 MB** |
-| `dataset-cache/dataset-metadata` | Decompressed per-chunk metadata used for quick metadata retrieval in dataset | **212 GB** |
-| `dataset-tokenized` | Tokenized and concatenated data chunks with per-chunk metadata in `.csv.gz` files. | **47.2 GB** |
+| Directory / File Set              | Context                                                                 | Size       |
+|----------------------------------|-------------------------------------------------------------------------|------------|
+| `dataset-cache/{dataset-common, dataset-348b68bc53a9e58ceab6501cae55d803c6b290615d95ac7d98cb0be4a039085d}`  | Used to build the dataset and dataloader.                               | **589 MB** |
+| `dataset-cache/dataset-metadata` | Decompressed per-chunk metadata for fast dataset metadata retrieval.   | **212 GB** |
+| `dataset-tokenized`              | Tokenized, concatenated data chunks with per-chunk metadata (`.csv.gz`). | **47.2 GB** |
 
 ## LMEnt Models
 The models with checkpoints taken every 10K steps are available in the [Hugging Face Collection](https://huggingface.co/collections/dhgottesman/lment).
