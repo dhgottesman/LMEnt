@@ -1,4 +1,14 @@
 # LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations
+<p align="center"><b>Accepted to TACL · EMNLP 2026</b></p>
+
+<p align="center">
+  <a href="https://dhgottesman.github.io/LMEnt/"><img src="https://img.shields.io/badge/Project-Page-2F4A8A?logo=googlechrome&logoColor=white" alt="Project Page"></a>
+  <a href="https://doi.org/10.1162/TACL.a.746"><img src="https://img.shields.io/badge/Paper-TACL-1C1B1A" alt="Paper (TACL)"></a>
+  <a href="https://arxiv.org/abs/2509.03405"><img src="https://img.shields.io/badge/arXiv-2509.03405-b31b1b?logo=arxiv&logoColor=white" alt="arXiv"></a>
+  <a href="https://huggingface.co/collections/dhgottesman/lment"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Models%20%26%20Data-LMEnt-FFD21E" alt="Models & Data"></a>
+  <a href="#citation"><img src="https://img.shields.io/badge/Cite-BibTeX-6B7280?logo=googlescholar&logoColor=white" alt="BibTeX"></a>
+</p>
+
 This repository contains the official code for the paper: "LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations" (2025).
 
 ---
@@ -166,3 +176,22 @@ Run `aggregate_entity_annotations/run_aggregate_entity_annotations.py` on every 
 
 ## Tokenizing Pretraining Data
 Run `dolma/python/run.slurm`.
+
+## Citation
+
+If you find LMEnt useful, please cite:
+
+```bibtex
+@article{10.1162/TACL.a.746,
+    author = {Gottesman, Daniela and Gilaie-Dotan, Alon and Cohen, Ido and Gur-Arieh, Yoav and Mosbach, Marius and Yoran, Ori and Geva, Mor},
+    title = {LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations},
+    journal = {Transactions of the Association for Computational Linguistics},
+    volume = {14},
+    pages = {1654-1691},
+    year = {2026},
+    month = {07},
+    issn = {2307-387X},
+    doi = {10.1162/TACL.a.746},
+    url = {https://doi.org/10.1162/TACL.a.746},
+}
+```
