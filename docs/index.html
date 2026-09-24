@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMEnt: A Suite for Analyzing Knowledge in Language Models</title>
+<meta name="description" content="LMEnt: an entity-annotated Wikipedia pretraining corpus, entity-based retrieval, and 12 pretrained LMs with 4K checkpoints for studying how language models acquire knowledge.">
+<meta property="og:title" content="LMEnt: A Suite for Analyzing Knowledge in Language Models">
+<meta property="og:description" content="LMEnt: an entity-annotated Wikipedia pretraining corpus, entity-based retrieval, and 12 pretrained LMs with 4K checkpoints for studying how language models acquire knowledge.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#FFFFFF;color:#1C1B1A}
+a{color:#2F4A8A}a:hover{color:#1D3163}
+.mention{display:inline;font:inherit;color:inherit;border:0;margin:0;padding:1px 3px;border-radius:4px;cursor:pointer;line-height:inherit;transition:opacity .15s,box-shadow .15s,background .15s}
+.mention:focus-visible,.marker:focus-visible,.chip:focus-visible,.btn:focus-visible{outline:2px solid #2F4A8A;outline-offset:2px}
+.marker{cursor:pointer;transition:transform .12s}
+.marker:hover{transform:translate(-50%,-50%) scale(1.25)!important}
+input[type=range]{accent-color:#2F4A8A}
+input[type=checkbox]{accent-color:#2F4A8A;width:16px;height:16px;margin:0}
+</style>
+<style>
+html,body{height:auto}
+@media (max-width: 900px) {
+  .stack { grid-template-columns: minmax(0, 1fr) !important; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<template id="tpl">
+<div style="width: 100%; min-height: 100%; background: #FFFFFF; color: #1C1B1A">
+<div style="max-width: 1180px; margin: 0 auto; padding: 72px 40px 96px; box-sizing: border-box; display: flex; flex-direction: column; gap: 88px">
+
+<header style="display: flex; flex-direction: column; gap: 22px; align-items: center; text-align: center">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5A55">arXiv 2509.03405</div>
+<h1 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 64px; line-height: 1.02; letter-spacing: -0.02em">LMEnt</h1>
+<p style="margin: 0; max-width: 820px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 28px; line-height: 1.25; text-wrap: balance">A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations</p>
+<p style="margin: 6px 0 0; max-width: 860px; font-size: 17px; line-height: 1.6; color: #2A2826">Daniela Gottesman, Alon Gilaie-Dotan, Ido Cohen, Yoav Gur-Arieh, Marius Mosbach, Ori Yoran, Mor Geva</p>
+<p style="margin: 0; font-size: 15px; color: #5E5A55">Tel Aviv University · Mila – Quebec AI Institute &amp; McGill University</p>
+<nav style="display: flex; gap: 12px; margin-top: 8px" aria-label="Project links">
+<a class="btn" href="https://arxiv.org/abs/2509.03405" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; background: #1C1B1A; color: #FFFFFF; text-decoration: none; font-weight: 500; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg><span>Paper</span></a>
+<a class="btn" href="https://github.com/dhgottesman/LMEnt" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; background: #1C1B1A; color: #FFFFFF; text-decoration: none; font-weight: 500; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg><span>Code</span></a>
+<a class="btn" href="https://huggingface.co/collections/dhgottesman/lment" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; background: #1C1B1A; color: #FFFFFF; text-decoration: none; font-weight: 500; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><path d="M3.27 6.96 12 12.01l8.73-5.05"></path><path d="M12 22.08V12"></path></svg><span>Models &amp; Data</span></a>
+<button type="button" class="btn" onClick="{{toggleBib}}" aria-expanded="{{showBib}}" aria-controls="bibtex" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; background: {{bibBtnBg}}; color: {{bibBtnFg}}; border: 1.5px solid #1C1B1A; font: inherit; font-weight: 500; font-size: 15px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg><span>BibTeX</span></button>
+</nav>
+<sc-if value="{{showBib}}" hint-placeholder-val="{{false}}">
+<div id="bibtex" style="width: 100%; max-width: 860px; margin-top: 6px; display: flex; flex-direction: column; gap: 10px; text-align: left">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+<div style="font-size: 14px; font-weight: 600">Cite LMEnt (TACL 2026)</div>
+<button type="button" class="btn" onClick="{{copyBib}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid #D5D9E0; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1C1B1A; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span aria-live="polite">{{copyLabel}}</span></button>
+</div>
+<pre style="margin: 0; max-height: 320px; overflow: auto; padding: 18px 20px; border-radius: 10px; background: #1F1E1C; color: #EDE9E1; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; user-select: all">{{bibtex}}</pre>
+</div>
+</sc-if>
+</header>
+
+<div style="width: 100%; max-width: 860px; margin: -40px auto 0; box-sizing: border-box; background: #EEF3FB; border: 1px solid #D3DEF2; border-radius: 14px; padding: 26px 30px; display: flex; gap: 22px; align-items: baseline">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; color: #2F4A8A; flex-shrink: 0">TL;DR</div>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; color: #1C1B1A; text-wrap: pretty">We present LMEnt, a suite including a knowledge-rich pretraining corpus, fully annotated with entity mentions based on Wikipedia; an entity-based retrieval method over pretraining data that outperforms existing tools by as much as 80.4%; and 12 pretrained LMs with up to 1B parameters and 4K intermediate checkpoints, with comparable performance to popular open-source models on knowledge tasks. Below, we cover our entity annotation method, the LMEnt models, and applications of LMEnt to mechanistic interpretability, learning dynamics, knowledge editing, plasticity, attribution, and hallucinations.</p>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="intro-title">
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<h2 id="intro-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Introduction</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Language models capture substantial amounts of knowledge and beliefs about the world from their training data. A fundamental, yet underexplored, question is how such knowledge representations are formed and shaped during pretraining. Namely, what is the interplay between data composition, training dynamics, and the internal knowledge mechanisms in LMs?</p>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">A key prerequisite for studying this question is the ability to locate exactly where specific knowledge appears in the pretraining data. However, since such metadata is rarely available for pretraining corpora, many works that study knowledge acquisition have used synthetic data, or post-hoc string-based search tools which lack robustness against variability in phrasing. For example, when retrieving information about the American football team the <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo Bills</span>, these tools are less likely to retrieve documents that refer to the team as <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo</span>, <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">The Bills</span>, or even <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">the team</span>.</p>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">In this work, we’re excited to introduce LMEnt (Language Models with annotated Entity mentions), a suite of pretrained models, a knowledge-rich pretraining corpus fully annotated with fine-grained entity mentions, and an entity-based retrieval method which allows full transparency into where a specific entity is mentioned in training.</p>
+</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5A55">Corpus</div>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05">7.3M</div>
+<div style="font-size: 16px; line-height: 1.5; color: #3A3734">unique entities annotated across English Wikipedia</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5A55">Retrieval</div>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05">10.5M</div>
+<div style="font-size: 16px; line-height: 1.5; color: #3A3734">chunks in an Elasticsearch index, retrievable by an entity’s unique Wikidata identifier (QID)</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5A55">Models</div>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05">12</div>
+<div style="font-size: 16px; line-height: 1.5; color: #3A3734">LMs with 170M, 600M, and 1B parameters, with 110 intermediate checkpoints per epoch and 4K checkpoints total</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="fig2-title">
+<div style="display: flex; flex-direction: column; gap: 10px; max-width: 780px">
+<h2 id="fig2-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Annotating every mention</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Entities can be mentioned explicitly by name, or implicitly through pronouns, aliases, and generic descriptors like <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">the team</span>. We link each mention to a Wikidata QID using three sources, each with its own score. Retrieval keeps a mention when any source is confident enough, so <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo</span> the team and <span style="background: #F7DDB8; border-radius: 4px; padding: 1px 4px">Buffalo</span> the city end up in different places.</p>
+</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg><span style="font-weight: 600; font-size: 17px">Hyperlinks</span></div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Links that Wikipedia editors added by hand. Precise, but sparse.</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">151M mentions</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg><span style="font-weight: 600; font-size: 17px">Entity linking</span></div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">ReFinED finds and disambiguates named mentions, with a confidence score.</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">203M mentions</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M16 12H8"></path><path d="m12 8-4 4 4 4"></path></svg><span style="font-weight: 600; font-size: 17px">Coreference</span></div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Maverick groups mentions of the same thing, so “he” and “the team” inherit their cluster’s entity.</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">310M mentions</div>
+</div>
+</div>
+<p style="margin: 8px 0 0; max-width: 760px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Try it on the <span style="background: #F2D9E3; border-radius: 4px; padding: 1px 4px">Josh Allen</span> example from the paper. Hover a mention to see its scores and the rest of its coreference cluster, then change the sources and thresholds to see which mentions retrieval keeps.</p>
+
+<div class="stack" style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start">
+<div style="position: relative; border: 1.5px dashed #C3C8D0; border-radius: 14px; padding: 36px 32px 30px; display: flex; flex-direction: column; gap: 26px; background: #FFFFFF">
+<div style="position: absolute; top: -13px; left: 50%; transform: translateX(-50%); padding: 3px 12px; border-radius: 6px; background: #DCE6F4; font-weight: 600; font-size: 14px">Document</div>
+<sc-for list="{{chunks}}" as="ch" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="align-self: flex-start; padding: 3px 10px; border-radius: 6px; background: #DCE6F4; font-weight: 600; font-size: 14px">{{ch.label}}</div>
+<p style="margin: 0; font-family: Newsreader, Georgia, serif; font-size: 20px; line-height: 1.85; color: #1C1B1A">{{ch.lead}}<sc-for list="{{ch.segs}}" as="seg" hint-placeholder-count="12"><sc-if value="{{seg.isText}}" hint-placeholder-val="{{true}}"><span style="white-space: pre-wrap">{{seg.text}}</span></sc-if><sc-if value="{{seg.isMention}}" hint-placeholder-val="{{false}}"><button type="button" class="mention" style="display: inline; {{seg.style}}" aria-label="{{seg.aria}}" aria-pressed="{{seg.pressed}}" onMouseEnter="{{seg.enter}}" onMouseLeave="{{seg.leave}}" onFocus="{{seg.enter}}" onBlur="{{seg.leave}}" onClick="{{seg.pin}}"><sc-if value="{{seg.hasBadge}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; margin-right: 4px; border-radius: 50%; background: #1C1B1A; color: #FFFFFF; font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600; vertical-align: 3px">{{seg.badge}}</span></sc-if><span style="white-space: pre-wrap">{{seg.text}}</span></button></sc-if></sc-for></p>
+</div>
+</sc-for>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; padding-top: 14px; border-top: 1px solid #EDEFF2; font-size: 14px; color: #3A3734">
+<sc-for list="{{legend}}" as="lg" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 14px; height: 14px; border-radius: 3px; background: {{lg.tint}}; box-shadow: inset 0 0 0 1.5px {{lg.strong}}"></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{lg.qid}}</span><span>{{lg.name}}</span></div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 22px; border-bottom: 2px dotted #8C867D"></span><span>filtered out</span></div>
+</div>
+</div>
+
+<aside style="display: flex; flex-direction: column; gap: 18px; position: sticky; top: 24px">
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600">Score sources</h3>
+<div style="font-size: 14px; color: #5E5A55"><span style="font-family: 'IBM Plex Mono', monospace; color: #1C1B1A; font-weight: 500">{{keptCount}}</span> / {{totalCount}} kept</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label style="display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 15px; cursor: pointer"><input type="checkbox" checked="{{useH}}" onChange="{{toggleH}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg><span style="flex-grow: 1">Hyperlinks</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">= 1</span></label>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label style="display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 15px; cursor: pointer"><input type="checkbox" checked="{{useEL}}" onChange="{{toggleEL}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg><span style="flex-grow: 1">Entity linking</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">≥ {{tELfmt}}</span></label>
+<input type="range" min="0" max="1" step="0.01" value="{{tEL}}" onChange="{{setEL}}" disabled="{{elOff}}" aria-label="Entity linking threshold" style="width: 100%">
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label style="display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 15px; cursor: pointer"><input type="checkbox" checked="{{useC}}" onChange="{{toggleC}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M16 12H8"></path><path d="m12 8-4 4 4 4"></path></svg><span style="flex-grow: 1">Coreference</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">≥ {{tCfmt}}</span></label>
+<input type="range" min="0" max="1" step="0.01" value="{{tC}}" onChange="{{setC}}" disabled="{{cOff}}" aria-label="Coreference threshold" style="width: 100%">
+</div>
+
+<button type="button" class="btn" onClick="{{reset}}" style="min-height: 40px; border: 1px solid #D5D9E0; background: #F5F6F8; border-radius: 8px; font: inherit; font-size: 14px; color: #1C1B1A; cursor: pointer">Reset to paper defaults (H = 1, EL ≥ 0.6, C ≥ 0.6)</button>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 22px; display: flex; flex-direction: column; gap: 16px; min-height: 250px">
+<sc-if value="{{card.empty}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px; color: #5E5A55; font-size: 15px; line-height: 1.55">
+<div style="font-weight: 600; color: #1C1B1A">Mention details</div>
+<div>Hover or tab to a highlighted mention to see its candidate entity and scores. Click to pin it.</div>
+</div>
+</sc-if>
+<sc-if value="{{card.has}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<div style="font-size: 15px"><span style="font-weight: 600">Mention</span> <span style="font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 18px">“{{card.surface}}”</span></div>
+<div style="font-size: 12px; color: #5E5A55; white-space: nowrap">{{card.pinLabel}}</div>
+</div>
+<div style="display: flex; border: 2px solid {{card.tint}}; border-radius: 6px; overflow: hidden">
+<div style="width: 14px; background: {{card.strong}}"></div>
+<div style="padding: 10px 14px; display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; color: {{card.strong}}">{{card.qid}}</div>
+<div style="font-size: 16px">{{card.name}}</div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 42px; gap: 10px; align-items: center; opacity: {{card.h.op}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>Hyperlink</span><span style="color: {{card.h.statusColor}}">{{card.h.status}}</span></div>
+<div style="position: relative; height: 6px; background: #EDEFF2; border-radius: 3px"><div style="height: 6px; border-radius: 3px; {{card.h.bar}}"></div><div style="position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: #1C1B1A; {{card.h.thr}}"></div></div>
+</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; text-align: right">{{card.h.disp}}</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 42px; gap: 10px; align-items: center; opacity: {{card.el.op}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>Entity linking</span><span style="color: {{card.el.statusColor}}">{{card.el.status}}</span></div>
+<div style="position: relative; height: 6px; background: #EDEFF2; border-radius: 3px"><div style="height: 6px; border-radius: 3px; {{card.el.bar}}"></div><div style="position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: #1C1B1A; {{card.el.thr}}"></div></div>
+</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; text-align: right">{{card.el.disp}}</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 42px; gap: 10px; align-items: center; opacity: {{card.c.op}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E5A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M16 12H8"></path><path d="m12 8-4 4 4 4"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>Coreference</span><span style="color: {{card.c.statusColor}}">{{card.c.status}}</span></div>
+<div style="position: relative; height: 6px; background: #EDEFF2; border-radius: 3px"><div style="height: 6px; border-radius: 3px; {{card.c.bar}}"></div><div style="position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: #1C1B1A; {{card.c.thr}}"></div></div>
+</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; text-align: right">{{card.c.disp}}</div>
+</div>
+
+<div style="padding-top: 12px; border-top: 1px solid #EDEFF2; font-size: 14px; line-height: 1.5; color: #3A3734">{{card.verdict}}</div>
+</div>
+</sc-if>
+</div>
+</aside>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; margin-top: 20px">
+<h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Retrieval that understands entities</h3>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Because every mention carries a QID, finding an entity in the training data becomes a QID lookup instead of a string search. Compared with string-matching baselines, LMEnt retrieves more correct mentions for 66–80% of entities, and keeps precision above 97% even when 100K chunks are retrieved for the entity.</p>
+</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start">
+<figure style="margin: 0; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px 26px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #A2CB8B; box-shadow: inset 0 0 0 1px transparent"></span><span>LMEnt wins</span></div><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #EFCBCB; box-shadow: inset 0 0 0 1px transparent"></span><span>Tie</span></div><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #A9A7E6; box-shadow: inset 0 0 0 1px transparent"></span><span>Baseline wins</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{winRows}}" as="wr" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 10px; align-items: center">
+<div style="font-size: 13px; text-align: right; color: #1C1B1A; white-space: nowrap">{{wr.label}}</div>
+<div style="display: flex; height: 30px">
+<sc-for list="{{wr.segs}}" as="sg" hint-placeholder-count="3"><div style="display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; font-size: 12px; color: #1C1B1A; border-right: 1.5px solid #FFFFFF; {{sg.style}}">{{sg.t}}</div></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">Pairwise wins rate for entity-based retrieval (LMEnt) with multiple string-based methods and ablations. LMEnt’s entity-based retrieval outperforms string-based methods by 66.7%–80.4%. Ablations (bottom three rows) show that hyperlinks and entity linking are the most crucial sources of entity mentions.</figcaption>
+</figure>
+<figure style="margin: 0; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px 26px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: nowrap; align-items: center; gap: 9px; font-size: 12px; color: #3A3734; white-space: nowrap"><span style="font-weight: 600">k</span><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #7F7F7F; box-shadow: inset 0 0 0 1px #6B665F"></span><span>1</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #E3A09C; box-shadow: inset 0 0 0 1px #6B665F"></span><span>5</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #E8B98A; box-shadow: inset 0 0 0 1px #6B665F"></span><span>10</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #EDE3A5; box-shadow: inset 0 0 0 1px #6B665F"></span><span>100</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #8DC47C; box-shadow: inset 0 0 0 1px #6B665F"></span><span>1K</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #A6DCD9; box-shadow: inset 0 0 0 1px #6B665F"></span><span>10K</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #9C9ACB; box-shadow: inset 0 0 0 1px #6B665F"></span><span>25K</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #6870CF; box-shadow: inset 0 0 0 1px #6B665F"></span><span>50K</span></div><div style="display: flex; align-items: center; gap: 4px"><span style="width: 11px; height: 11px; border-radius: 2px; background: #DDA6E2; box-shadow: inset 0 0 0 1px #6B665F"></span><span>100K</span></div></div>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{precChart.w}} {{precChart.h}}" role="img" aria-label="{{precChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{precChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{precChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{precChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{precChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{precChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{precChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{precChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{precChart.tip.style}}"><div style="font-weight: 600">{{precChart.tip.title}}</div><div style="color: #D5D9E0">{{precChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">Precision at various retrieval depths (k), the top-k chunks retrieved per entity. As depth increases, LMEnt maintains &gt; 97% precision, while CS-SS Canonical and CI-SS Expanded decrease to 84% and 27%.</figcaption>
+</figure>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="models-title">
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<h2 id="models-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Models you can trace…<span style="display: block; margin-top: 6px; font-size: 28px; font-weight: 400; font-style: italic; color: #3A3734">step by step, chunk by chunk, and entity by entity</span></h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We pretrain models at three sizes (170M, 600M and 1B parameters) for 1, 2, 4 and 6 epochs over the corpus: 12 models in total. A checkpoint is saved every 1,000 steps, resulting in 110 checkpoints per epoch and 4K checkpoints overall.</p>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Each training sequence holds chunks from a single document, and chunks never split a mention. So for any step we know exactly which chunks the model saw, and every entity they mention.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); overflow: hidden">
+<table style="width: 100%; border-collapse: collapse; font-size: 15px">
+<thead><tr style="background: #FAFBFC"><th scope="col" style="padding: 12px 16px; text-align: left; font-weight: 500; color: #5E5A55">Size</th><th scope="col" style="padding: 12px 16px; text-align: left; font-weight: 500; color: #5E5A55">1 epoch · 3.6B tokens</th><th scope="col" style="padding: 12px 16px; text-align: left; font-weight: 500; color: #5E5A55">2 epochs · 7.2B</th><th scope="col" style="padding: 12px 16px; text-align: left; font-weight: 500; color: #5E5A55">4 epochs · 14.4B</th><th scope="col" style="padding: 12px 16px; text-align: left; font-weight: 500; color: #5E5A55">6 epochs · 21.6B</th></tr></thead>
+<tbody>
+<tr><th scope="row" style="padding: 12px 16px; border-top: 1px solid #EDEFF2; text-align: left; font-weight: 600">170M</th><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-170M-1E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-170M-1E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-170M-2E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-170M-2E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-170M-4E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-170M-4E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-170M-6E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-170M-6E</a></td></tr>
+<tr><th scope="row" style="padding: 12px 16px; border-top: 1px solid #EDEFF2; text-align: left; font-weight: 600">600M</th><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-600M-1E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-600M-1E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-600M-2E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-600M-2E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-600M-4E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-600M-4E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-600M-6E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-600M-6E</a></td></tr>
+<tr><th scope="row" style="padding: 12px 16px; border-top: 1px solid #EDEFF2; text-align: left; font-weight: 600">1B</th><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-1B-1E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-1B-1E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-1B-2E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-1B-2E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-1B-4E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-1B-4E</a></td><td style="padding: 12px 16px; border-top: 1px solid #EDEFF2; font-family: 'IBM Plex Mono', monospace; font-size: 14px"><a href="https://huggingface.co/dhgottesman/LMEnt-1B-6E" style="color: #2F4A8A; text-decoration: underline; text-underline-offset: 3px">LMEnt-1B-6E</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px; margin-top: -48px" aria-labelledby="qid-title">
+<div style="display: flex; flex-direction: column; gap: 10px; max-width: 780px">
+<h3 id="qid-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Where does an entity appear in training?</h3>
+<p style="margin: 0; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Pick an entity to mark every training step whose batch contains a chunk mentioning it. Select a step to read that chunk with the mention highlighted.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px" role="group" aria-label="Entities">
+<sc-for list="{{qidChips}}" as="qc" hint-placeholder-count="4">
+<button type="button" class="chip" onClick="{{qc.pick}}" aria-pressed="{{qc.active}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; {{qc.style}}"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{qc.qid}}</span><span>{{qc.name}}</span></button>
+</sc-for>
+</div>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 26px 28px 22px; display: flex; flex-direction: column; gap: 18px">
+<sc-if value="{{hasQid}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+<div style="font-size: 15px; color: #3A3734"><span style="font-weight: 600; color: #1C1B1A">{{plot.count}} steps</span> mention {{plot.qid}} · {{plot.nExp}} explicit · {{plot.nImp}} implicit only</div>
+<div style="display: flex; align-items: center; gap: 18px; font-size: 13px; color: #3A3734">
+<div style="display: flex; align-items: center; gap: 7px"><span style="width: 12px; height: 12px; border-radius: 50%; background: {{plot.strong}}"></span>explicit (hyperlink or entity linking)</div>
+<div style="display: flex; align-items: center; gap: 7px"><span style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2.5px solid {{plot.strong}}"></span>implicit (coreference only)</div>
+<span style="padding: 2px 8px; border-radius: 4px; background: #F3EEDF; color: #6B5A2E; font-size: 12px">Example data · Wikipedia excerpts, illustrative steps</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px">
+<div style="display: flex; align-items: center; justify-content: center"><span style="transform: rotate(-90deg); white-space: nowrap; font-size: 13px; color: #5E5A55">Training loss</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="position: relative; height: 320px; border-left: 1px solid #D0D5DD; border-bottom: 1px solid #D0D5DD; background: #FAFBFC">
+<svg viewBox="0 0 1000 320" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+<line x1="0" y1="80" x2="1000" y2="80" stroke="#EDEFF2" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+<line x1="0" y1="160" x2="1000" y2="160" stroke="#EDEFF2" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+<line x1="0" y1="240" x2="1000" y2="240" stroke="#EDEFF2" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+<polyline points="{{lossPoints}}" fill="none" stroke="#8079C9" stroke-width="1.3" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+<sc-for list="{{plot.lines}}" as="ln" hint-placeholder-count="0">
+<line x1="500" y1="104" x2="{{ln.x}}" y2="{{ln.y}}" stroke="{{ln.color}}" stroke-width="{{ln.w}}" stroke-dasharray="7 6" opacity="{{ln.op}}" vector-effect="non-scaling-stroke"></line>
+</sc-for>
+</svg>
+<div style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; height: 84px; box-sizing: border-box; border: 2.5px solid {{plot.tint}}; border-radius: 4px; background: #FFFFFF; overflow: hidden">
+<div style="width: 26px; background: {{plot.tint}}"></div>
+<div style="padding: 10px 20px; display: flex; flex-direction: column; justify-content: center; gap: 2px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; color: {{plot.strong}}">{{plot.qid}}</div>
+<div style="font-size: 17px; white-space: nowrap">{{plot.name}}</div>
+</div>
+</div>
+<sc-for list="{{plot.markers}}" as="mk" hint-placeholder-count="0">
+<button type="button" class="marker" onClick="{{mk.pick}}" aria-label="{{mk.aria}}" aria-pressed="{{mk.selected}}" style="position: absolute; padding: 0; transform: translate(-50%, -50%); box-sizing: border-box; border-radius: 50%; {{mk.style}}"></button>
+</sc-for>
+</div>
+<div style="position: relative; height: 18px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5E5A55">
+<sc-for list="{{xTicks}}" as="xt" hint-placeholder-count="6">
+<span style="position: absolute; transform: translateX(-50%); {{xt.style}}">{{xt.label}}</span>
+</sc-for>
+</div>
+<div style="text-align: center; font-size: 14px; color: #3A3734">Training steps</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 22px 24px; border-radius: 12px; background: #F5F6F8; border: 1px solid #E4E7EC">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: nowrap">
+<div style="display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; flex: 1 1 auto; min-width: 0">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500">Step {{detail.step}}</div>
+<div style="font-size: 14px; color: #5E5A55">chunk from the article <span style="font-style: italic; color: #1C1B1A">{{detail.doc}}</span></div>
+<span style="padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; {{detail.kindStyle}}">{{detail.kind}}</span>
+</div>
+<div style="display: flex; gap: 8px; flex-shrink: 0">
+<button type="button" class="btn" onClick="{{prevStep}}" disabled="{{detail.atStart}}" aria-label="Previous step" style="width: 44px; height: 44px; border: 1px solid #D5D9E0; border-radius: 8px; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1B1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+<button type="button" class="btn" onClick="{{nextStep}}" disabled="{{detail.atEnd}}" aria-label="Next step" style="width: 44px; height: 44px; border: 1px solid #D5D9E0; border-radius: 8px; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1B1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+</div>
+</div>
+<p style="margin: 0; font-family: Newsreader, Georgia, serif; font-size: 20px; line-height: 1.8">{{detail.lead}}<sc-for list="{{detail.segs}}" as="ds" hint-placeholder-count="5"><span style="white-space: pre-wrap; {{ds.style}}">{{ds.text}}</span></sc-for></p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 20px; padding-top: 12px; border-top: 1px solid #E4E7EC">
+<sc-for list="{{detail.mentions}}" as="dm" hint-placeholder-count="2">
+<div style="display: flex; align-items: baseline; gap: 10px; font-size: 14px"><span style="font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px">“{{dm.text}}”</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #3A3734">{{dm.scores}}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 24px; margin-top: -48px" aria-labelledby="pareto-title">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px">
+<h3 id="pareto-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Small data, strong knowledge</h3>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">LMEnt models only ever see Wikipedia, about 0.09% of the tokens OLMo-2 was trained on. Still, on PopQA questions whose subject and answer entities co-occur frequently, LMEnt models achieve comparable performance to other models with better compute efficiency.</p>
+</div>
+<figure style="margin: 0 auto; width: 100%; max-width: 780px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+<div style="text-align: center; font-size: 15px; font-weight: 500">PopQA (1K+ Subject Answer Chunks Shared)</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2,8a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" fill="#9CC98A" stroke="none" stroke-width="1.2"></path></svg><span>LMEnt</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5,2.5h11v11h-11Z" fill="#F0B882" stroke="none" stroke-width="1.2"></path></svg><span>OLMo</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8,1L15,8L8,15L1,8Z" fill="#8883D0" stroke="none" stroke-width="1.2"></path></svg><span>Pythia</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8,1.5L15,14H1Z" fill="#9DE0E3" stroke="none" stroke-width="1.2"></path></svg><span>SmolLM2</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2,8a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" fill="#9CC98A" stroke="#1C1B1A" stroke-width="1.2"></path></svg><span>Baselines</span></div></div>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{paretoChart.w}} {{paretoChart.h}}" role="img" aria-label="{{paretoChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{paretoChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{paretoChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{paretoChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{paretoChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{paretoChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{paretoChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{paretoChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{paretoChart.tip.style}}"><div style="font-weight: 600">{{paretoChart.tip.title}}</div><div style="color: #D5D9E0">{{paretoChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">Accuracy on PopQA questions, whose subject and answer entities co-occur frequently, as a function of compute budget. LMEnt models achieve comparable performance to other models with better compute efficiency.</figcaption>
+</figure>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="findings-title">
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<h2 id="findings-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What we learned with LMEnt so far</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Beyond releasing this resource, we use LMEnt to explore several open questions about how pretraining data shapes knowledge in LMs. We apply LMEnt to study knowledge acquisition and forgetting trends, and in-context editing.</p>
+</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 20px; min-width: 0">
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 26px 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">1</div>
+<h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.2">Frequent facts are both learned and forgotten, more</h3>
+<p style="margin: 0 0 6px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">LMs learn, and also forget, frequent facts more over the course of training, and these trends differ across relation types.</p>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #A2CB8B; box-shadow: inset 0 0 0 1px #1C1B1A"></span><span>Learned</span></div><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #E8918F; box-shadow: inset 0 0 0 1px #1C1B1A"></span><span>Forgotten</span></div></div><div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect></svg><span>(0, 20K)</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect><path d="M0,5L5,0M0,10L10,0M0,15L15,0M5,15L18,2M10,15L18,7" stroke="#1C1B1A" stroke-width="0.8"></path></svg><span>(20K, 40K)</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect><path d="M0,6L6,0M0,12L12,0M4,14L18,0M10,14L18,6M0,8L6,14M0,2L12,14M6,0L18,12M12,0L18,6" stroke="#1C1B1A" stroke-width="0.7"></path></svg><span>(40K, 60K)</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect><path d="M0,9L5,14M0,4L10,14M1,0L15,14M6,0L18,12M11,0L18,7" stroke="#1C1B1A" stroke-width="0.8"></path></svg><span>(60K, 80K)</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect><circle cx="3" cy="3" r="0.9" fill="#1C1B1A"></circle><circle cx="3" cy="8" r="0.9" fill="#1C1B1A"></circle><circle cx="3" cy="12" r="0.9" fill="#1C1B1A"></circle><circle cx="8" cy="3" r="0.9" fill="#1C1B1A"></circle><circle cx="8" cy="8" r="0.9" fill="#1C1B1A"></circle><circle cx="8" cy="12" r="0.9" fill="#1C1B1A"></circle><circle cx="13" cy="3" r="0.9" fill="#1C1B1A"></circle><circle cx="13" cy="8" r="0.9" fill="#1C1B1A"></circle><circle cx="13" cy="12" r="0.9" fill="#1C1B1A"></circle></svg><span>(80K, 100K)</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><rect x="0.5" y="0.5" width="17" height="13" fill="#FFFFFF" stroke="#1C1B1A" stroke-width="0.8"></rect><circle cx="5" cy="7" r="2.2" fill="none" stroke="#1C1B1A"></circle><circle cx="13" cy="7" r="2.2" fill="none" stroke="#1C1B1A"></circle></svg><span>Sum</span></div></div></div>
+<div style="display: flex; gap: 4px; padding: 3px; background: #F0F2F5; border-radius: 999px" role="group" aria-label="Relation">
+<sc-for list="{{lfBtns}}" as="lb" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{lb.pick}}" aria-pressed="{{lb.active}}" style="min-height: 34px; padding: 0 14px; border: 0; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer; {{lb.style}}">{{lb.name}}</button></sc-for>
+</div>
+</div>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{lfChart.w}} {{lfChart.h}}" role="img" aria-label="{{lfChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{lfChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{lfChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{lfChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{lfChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{lfChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{lfChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{lfChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{lfChart.tip.style}}"><div style="font-weight: 600">{{lfChart.tip.title}}</div><div style="color: #D5D9E0">{{lfChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">Percentage of facts learned and forgotten by fact frequency between intermediate checkpoints of LMEnt-1B. Overall, this shows that while fact frequency correlates with knowledge gains, both learning and forgetting increase with fact frequency. The learning and forgetting trends for specific Country and Religion relations differ across training step intervals.</figcaption>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 26px 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">3</div>
+<h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.2">Strong associations are harder to edit</h3>
+<p style="margin: 0 0 6px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">In-context editing success correlates with the frequency of entity co-occurrence in the data: LMs are more rigid to editing facts with strong associations.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><svg width="26" height="10" aria-hidden="true"><path d="M1,5H25" stroke="#2E78B7" stroke-width="2.5"></path><path d="M10.5,5a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" fill="#2E78B7"></path></svg><span>Orig-Subj low · CF-Subj low</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="26" height="10" aria-hidden="true"><path d="M1,5H25" stroke="#2E78B7" stroke-width="2.5" stroke-dasharray="5 3"></path><path d="M10.5,5a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" fill="#2E78B7"></path></svg><span>Orig-Subj low · CF-Subj high</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="26" height="10" aria-hidden="true"><path d="M1,5H25" stroke="#D0352F" stroke-width="2.5"></path><path d="M10.5,5a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" fill="#D0352F"></path></svg><span>Orig-Subj high · CF-Subj low</span></div><div style="display: flex; align-items: center; gap: 7px"><svg width="26" height="10" aria-hidden="true"><path d="M1,5H25" stroke="#D0352F" stroke-width="2.5" stroke-dasharray="5 3"></path><path d="M10.5,5a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" fill="#D0352F"></path></svg><span>Orig-Subj high · CF-Subj high</span></div></div>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{editChart.w}} {{editChart.h}}" role="img" aria-label="{{editChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{editChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{editChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{editChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{editChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{editChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{editChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{editChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{editChart.tip.style}}"><div style="font-weight: 600">{{editChart.tip.title}}</div><div style="color: #D5D9E0">{{editChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">In-context editing success across training checkpoints, split by the co-occurrence frequencies of Orig-Subj and CF-Subj pairs. LMs are more rigid to editing facts with strong associations with either pair (red &lt; blue, dash &lt; solid). 6E refers to the final model at epoch six.</figcaption>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px; min-width: 0">
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 26px 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">2</div>
+<h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.2">Entity forms in training data matter</h3>
+<p style="margin: 0 0 6px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">For frequent facts, a model is more likely to answer correctly when its training chunks name the entity explicitly rather than refer to it implicitly like “he” or “the team”. These are analyses that string search can’t grasp due to alias ambiguity.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #3A3734"><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #A2CB8B; box-shadow: inset 0 0 0 1px #666"></span><span>Correct</span></div><div style="display: flex; align-items: center; gap: 7px"><span style="width: 13px; height: 13px; border-radius: 2px; background: #E0A0A0; box-shadow: inset 0 0 0 1px #666"></span><span>Incorrect</span></div></div>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{boxChart.w}} {{boxChart.h}}" role="img" aria-label="{{boxChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{boxChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{boxChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{boxChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{boxChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{boxChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{boxChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{boxChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{boxChart.tip.style}}"><div style="font-weight: 600">{{boxChart.tip.title}}</div><div style="color: #D5D9E0">{{boxChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">LMEnt-1B is more accurate when entities co-occur in their explicit forms, implying that entity mention forms influence learning.</figcaption>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06); padding: 26px 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">4</div>
+<h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.2">Brittle facts are easier to edit</h3>
+<p style="margin: 0 0 6px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">In-context editing success increases with prediction brittleness: facts whose answers fluctuate more during training are easier to edit.</p>
+<div style="position: relative; width: 100%">
+<svg viewBox="0 0 {{britChart.w}} {{britChart.h}}" role="img" aria-label="{{britChart.aria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<sc-for list="{{britChart.paths}}" as="p" hint-placeholder-count="0"><path d="{{p.d}}" fill="{{p.fill}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}" stroke-dasharray="{{p.dash}}" opacity="{{p.op}}"></path></sc-for>
+<sc-for list="{{britChart.rects}}" as="r" hint-placeholder-count="0"><rect x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" rx="{{r.rx}}" fill="{{r.fill}}" fill-opacity="{{r.op}}" stroke="{{r.stroke}}" stroke-width="{{r.sw}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}"></rect></sc-for>
+<sc-for list="{{britChart.over}}" as="ov" hint-placeholder-count="0"><path d="{{ov.d}}" fill="{{ov.fill}}" stroke="{{ov.stroke}}" stroke-width="{{ov.sw}}" pointer-events="none"></path></sc-for>
+<sc-for list="{{britChart.marks}}" as="m" hint-placeholder-count="0"><path d="{{m.d}}" fill="{{m.fill}}" stroke="{{m.stroke}}" stroke-width="{{m.sw}}"></path></sc-for>
+<sc-for list="{{britChart.hits}}" as="hh" hint-placeholder-count="0"><circle cx="{{hh.cx}}" cy="{{hh.cy}}" r="{{hh.r}}" fill="#FFFFFF" fill-opacity="0" onMouseEnter="{{hh.enter}}" onMouseLeave="{{hh.leave}}"></circle></sc-for>
+</svg>
+<sc-for list="{{britChart.labels}}" as="lbl" hint-placeholder-count="0"><span style="position: absolute; white-space: nowrap; pointer-events: none; line-height: 1.1; {{lbl.style}}">{{lbl.t}}</span></sc-for>
+<sc-if value="{{britChart.tip.show}}" hint-placeholder-val="{{false}}"><div style="position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; background: #1C1B1A; color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: nowrap; z-index: 5; {{britChart.tip.style}}"><div style="font-weight: 600">{{britChart.tip.title}}</div><div style="color: #D5D9E0">{{britChart.tip.body}}</div></div></sc-if>
+</div>
+<figcaption style="font-size: 14px; line-height: 1.55; color: #5E5A55; text-wrap: pretty">In-context editing success of the LMEnt-1B model increases with prediction brittleness.</figcaption>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="apps-title">
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<h2 id="apps-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What You Can Study with LMEnt</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We release the corpus, annotations, retrieval, models and checkpoints to promote research in the following areas:</p>
+</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px">
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Learning dynamics</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Watch a fact get learned, and forgotten, checkpoint by checkpoint.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Attribution</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Trace an answer back to the exact chunks and steps behind it.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Mechanistic interpretability</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Probe how an entity’s representation forms as its mentions pile up.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Editing</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Test how training exposure shapes which facts can be changed later.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Plasticity</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Measure how easily new knowledge overrides what the model already knows.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Hallucinations</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Find the facts a model gets wrong, and what it actually saw about them.</div>
+</div>
+</div>
+</section>
+
+</div>
+</div>
+</template>
+<script>(function(global,factory){typeof exports==="object"&&typeof module!=="undefined"?module.exports=factory():typeof define==="function"&&define.amd?define(factory):(global=global||self,global.morphdom=factory())})(this,function(){"use strict";var DOCUMENT_FRAGMENT_NODE=11;function morphAttrs(fromNode,toNode){var toNodeAttrs=toNode.attributes;var attr;var attrName;var attrNamespaceURI;var attrValue;var fromValue;if(toNode.nodeType===DOCUMENT_FRAGMENT_NODE||fromNode.nodeType===DOCUMENT_FRAGMENT_NODE){return}for(var i=toNodeAttrs.length-1;i>=0;i--){attr=toNodeAttrs[i];attrName=attr.name;attrNamespaceURI=attr.namespaceURI;attrValue=attr.value;if(attrNamespaceURI){attrName=attr.localName||attrName;fromValue=fromNode.getAttributeNS(attrNamespaceURI,attrName);if(fromValue!==attrValue){if(attr.prefix==="xmlns"){attrName=attr.name}fromNode.setAttributeNS(attrNamespaceURI,attrName,attrValue)}}else{fromValue=fromNode.getAttribute(attrName);if(fromValue!==attrValue){fromNode.setAttribute(attrName,attrValue)}}}var fromNodeAttrs=fromNode.attributes;for(var d=fromNodeAttrs.length-1;d>=0;d--){attr=fromNodeAttrs[d];attrName=attr.name;attrNamespaceURI=attr.namespaceURI;if(attrNamespaceURI){attrName=attr.localName||attrName;if(!toNode.hasAttributeNS(attrNamespaceURI,attrName)){fromNode.removeAttributeNS(attrNamespaceURI,attrName)}}else{if(!toNode.hasAttribute(attrName)){fromNode.removeAttribute(attrName)}}}}var range;var NS_XHTML="http://www.w3.org/1999/xhtml";var doc=typeof document==="undefined"?undefined:document;var HAS_TEMPLATE_SUPPORT=!!doc&&"content"in doc.createElement("template");var HAS_RANGE_SUPPORT=!!doc&&doc.createRange&&"createContextualFragment"in doc.createRange();function createFragmentFromTemplate(str){var template=doc.createElement("template");template.innerHTML=str;return template.content.childNodes[0]}function createFragmentFromRange(str){if(!range){range=doc.createRange();range.selectNode(doc.body)}var fragment=range.createContextualFragment(str);return fragment.childNodes[0]}function createFragmentFromWrap(str){var fragment=doc.createElement("body");fragment.innerHTML=str;return fragment.childNodes[0]}function toElement(str){str=str.trim();if(HAS_TEMPLATE_SUPPORT){return createFragmentFromTemplate(str)}else if(HAS_RANGE_SUPPORT){return createFragmentFromRange(str)}return createFragmentFromWrap(str)}function compareNodeNames(fromEl,toEl){var fromNodeName=fromEl.nodeName;var toNodeName=toEl.nodeName;var fromCodeStart,toCodeStart;if(fromNodeName===toNodeName){return true}fromCodeStart=fromNodeName.charCodeAt(0);toCodeStart=toNodeName.charCodeAt(0);if(fromCodeStart<=90&&toCodeStart>=97){return fromNodeName===toNodeName.toUpperCase()}else if(toCodeStart<=90&&fromCodeStart>=97){return toNodeName===fromNodeName.toUpperCase()}else{return false}}function createElementNS(name,namespaceURI){return!namespaceURI||namespaceURI===NS_XHTML?doc.createElement(name):doc.createElementNS(namespaceURI,name)}function moveChildren(fromEl,toEl){var curChild=fromEl.firstChild;while(curChild){var nextChild=curChild.nextSibling;toEl.appendChild(curChild);curChild=nextChild}return toEl}function syncBooleanAttrProp(fromEl,toEl,name){if(fromEl[name]!==toEl[name]){fromEl[name]=toEl[name];if(fromEl[name]){fromEl.setAttribute(name,"")}else{fromEl.removeAttribute(name)}}}var specialElHandlers={OPTION:function(fromEl,toEl){var parentNode=fromEl.parentNode;if(parentNode){var parentName=parentNode.nodeName.toUpperCase();if(parentName==="OPTGROUP"){parentNode=parentNode.parentNode;parentName=parentNode&&parentNode.nodeName.toUpperCase()}if(parentName==="SELECT"&&!parentNode.hasAttribute("multiple")){if(fromEl.hasAttribute("selected")&&!toEl.selected){fromEl.setAttribute("selected","selected");fromEl.removeAttribute("selected")}parentNode.selectedIndex=-1}}syncBooleanAttrProp(fromEl,toEl,"selected")},INPUT:function(fromEl,toEl){syncBooleanAttrProp(fromEl,toEl,"checked");syncBooleanAttrProp(fromEl,toEl,"disabled");if(fromEl.value!==toEl.value){fromEl.value=toEl.value}if(!toEl.hasAttribute("value")){fromEl.removeAttribute("value")}},TEXTAREA:function(fromEl,toEl){var newValue=toEl.value;if(fromEl.value!==newValue){fromEl.value=newValue}var firstChild=fromEl.firstChild;if(firstChild){var oldValue=firstChild.nodeValue;if(oldValue==newValue||!newValue&&oldValue==fromEl.placeholder){return}firstChild.nodeValue=newValue}},SELECT:function(fromEl,toEl){if(!toEl.hasAttribute("multiple")){var selectedIndex=-1;var i=0;var curChild=fromEl.firstChild;var optgroup;var nodeName;while(curChild){nodeName=curChild.nodeName&&curChild.nodeName.toUpperCase();if(nodeName==="OPTGROUP"){optgroup=curChild;curChild=optgroup.firstChild}else{if(nodeName==="OPTION"){if(curChild.hasAttribute("selected")){selectedIndex=i;break}i++}curChild=curChild.nextSibling;if(!curChild&&optgroup){curChild=optgroup.nextSibling;optgroup=null}}}fromEl.selectedIndex=selectedIndex}}};var ELEMENT_NODE=1;var DOCUMENT_FRAGMENT_NODE$1=11;var TEXT_NODE=3;var COMMENT_NODE=8;function noop(){}function defaultGetNodeKey(node){if(node){return node.getAttribute&&node.getAttribute("id")||node.id}}function morphdomFactory(morphAttrs){return function morphdom(fromNode,toNode,options){if(!options){options={}}if(typeof toNode==="string"){if(fromNode.nodeName==="#document"||fromNode.nodeName==="HTML"||fromNode.nodeName==="BODY"){var toNodeHtml=toNode;toNode=doc.createElement("html");toNode.innerHTML=toNodeHtml}else{toNode=toElement(toNode)}}else if(toNode.nodeType===DOCUMENT_FRAGMENT_NODE$1){toNode=toNode.firstElementChild}var getNodeKey=options.getNodeKey||defaultGetNodeKey;var onBeforeNodeAdded=options.onBeforeNodeAdded||noop;var onNodeAdded=options.onNodeAdded||noop;var onBeforeElUpdated=options.onBeforeElUpdated||noop;var onElUpdated=options.onElUpdated||noop;var onBeforeNodeDiscarded=options.onBeforeNodeDiscarded||noop;var onNodeDiscarded=options.onNodeDiscarded||noop;var onBeforeElChildrenUpdated=options.onBeforeElChildrenUpdated||noop;var skipFromChildren=options.skipFromChildren||noop;var addChild=options.addChild||function(parent,child){return parent.appendChild(child)};var childrenOnly=options.childrenOnly===true;var fromNodesLookup=Object.create(null);var keyedRemovalList=[];function addKeyedRemoval(key){keyedRemovalList.push(key)}function walkDiscardedChildNodes(node,skipKeyedNodes){if(node.nodeType===ELEMENT_NODE){var curChild=node.firstChild;while(curChild){var key=undefined;if(skipKeyedNodes&&(key=getNodeKey(curChild))){addKeyedRemoval(key)}else{onNodeDiscarded(curChild);if(curChild.firstChild){walkDiscardedChildNodes(curChild,skipKeyedNodes)}}curChild=curChild.nextSibling}}}function removeNode(node,parentNode,skipKeyedNodes){if(onBeforeNodeDiscarded(node)===false){return}if(parentNode){parentNode.removeChild(node)}onNodeDiscarded(node);walkDiscardedChildNodes(node,skipKeyedNodes)}function indexTree(node){if(node.nodeType===ELEMENT_NODE||node.nodeType===DOCUMENT_FRAGMENT_NODE$1){var curChild=node.firstChild;while(curChild){var key=getNodeKey(curChild);if(key){fromNodesLookup[key]=curChild}indexTree(curChild);curChild=curChild.nextSibling}}}indexTree(fromNode);function handleNodeAdded(el){onNodeAdded(el);var curChild=el.firstChild;while(curChild){var nextSibling=curChild.nextSibling;var key=getNodeKey(curChild);if(key){var unmatchedFromEl=fromNodesLookup[key];if(unmatchedFromEl&&compareNodeNames(curChild,unmatchedFromEl)){curChild.parentNode.replaceChild(unmatchedFromEl,curChild);morphEl(unmatchedFromEl,curChild)}else{handleNodeAdded(curChild)}}else{handleNodeAdded(curChild)}curChild=nextSibling}}function cleanupFromEl(fromEl,curFromNodeChild,curFromNodeKey){while(curFromNodeChild){var fromNextSibling=curFromNodeChild.nextSibling;if(curFromNodeKey=getNodeKey(curFromNodeChild)){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=fromNextSibling}}function morphEl(fromEl,toEl,childrenOnly){var toElKey=getNodeKey(toEl);if(toElKey){delete fromNodesLookup[toElKey]}if(!childrenOnly){var beforeUpdateResult=onBeforeElUpdated(fromEl,toEl);if(beforeUpdateResult===false){return}else if(beforeUpdateResult instanceof HTMLElement){fromEl=beforeUpdateResult;indexTree(fromEl)}morphAttrs(fromEl,toEl);onElUpdated(fromEl);if(onBeforeElChildrenUpdated(fromEl,toEl)===false){return}}if(fromEl.nodeName!=="TEXTAREA"){morphChildren(fromEl,toEl)}else{specialElHandlers.TEXTAREA(fromEl,toEl)}}function morphChildren(fromEl,toEl){var skipFrom=skipFromChildren(fromEl,toEl);var curToNodeChild=toEl.firstChild;var curFromNodeChild=fromEl.firstChild;var curToNodeKey;var curFromNodeKey;var fromNextSibling;var toNextSibling;var matchingFromEl;outer:while(curToNodeChild){toNextSibling=curToNodeChild.nextSibling;curToNodeKey=getNodeKey(curToNodeChild);while(!skipFrom&&curFromNodeChild){fromNextSibling=curFromNodeChild.nextSibling;if(curToNodeChild.isSameNode&&curToNodeChild.isSameNode(curFromNodeChild)){curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling;continue outer}curFromNodeKey=getNodeKey(curFromNodeChild);var curFromNodeType=curFromNodeChild.nodeType;var isCompatible=undefined;if(curFromNodeType===curToNodeChild.nodeType){if(curFromNodeType===ELEMENT_NODE){if(curToNodeKey){if(curToNodeKey!==curFromNodeKey){if(matchingFromEl=fromNodesLookup[curToNodeKey]){if(fromNextSibling===matchingFromEl){isCompatible=false}else{fromEl.insertBefore(matchingFromEl,curFromNodeChild);if(curFromNodeKey){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=matchingFromEl;curFromNodeKey=getNodeKey(curFromNodeChild)}}else{isCompatible=false}}}else if(curFromNodeKey){isCompatible=false}isCompatible=isCompatible!==false&&compareNodeNames(curFromNodeChild,curToNodeChild);if(isCompatible){morphEl(curFromNodeChild,curToNodeChild)}}else if(curFromNodeType===TEXT_NODE||curFromNodeType==COMMENT_NODE){isCompatible=true;if(curFromNodeChild.nodeValue!==curToNodeChild.nodeValue){curFromNodeChild.nodeValue=curToNodeChild.nodeValue}}}if(isCompatible){curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling;continue outer}if(curFromNodeKey){addKeyedRemoval(curFromNodeKey)}else{removeNode(curFromNodeChild,fromEl,true)}curFromNodeChild=fromNextSibling}if(curToNodeKey&&(matchingFromEl=fromNodesLookup[curToNodeKey])&&compareNodeNames(matchingFromEl,curToNodeChild)){if(!skipFrom){addChild(fromEl,matchingFromEl)}morphEl(matchingFromEl,curToNodeChild)}else{var onBeforeNodeAddedResult=onBeforeNodeAdded(curToNodeChild);if(onBeforeNodeAddedResult!==false){if(onBeforeNodeAddedResult){curToNodeChild=onBeforeNodeAddedResult}if(curToNodeChild.actualize){curToNodeChild=curToNodeChild.actualize(fromEl.ownerDocument||doc)}addChild(fromEl,curToNodeChild);handleNodeAdded(curToNodeChild)}}curToNodeChild=toNextSibling;curFromNodeChild=fromNextSibling}cleanupFromEl(fromEl,curFromNodeChild,curFromNodeKey);var specialElHandler=specialElHandlers[fromEl.nodeName];if(specialElHandler){specialElHandler(fromEl,toEl)}}var morphedNode=fromNode;var morphedNodeType=morphedNode.nodeType;var toNodeType=toNode.nodeType;if(!childrenOnly){if(morphedNodeType===ELEMENT_NODE){if(toNodeType===ELEMENT_NODE){if(!compareNodeNames(fromNode,toNode)){onNodeDiscarded(fromNode);morphedNode=moveChildren(fromNode,createElementNS(toNode.nodeName,toNode.namespaceURI))}}else{morphedNode=toNode}}else if(morphedNodeType===TEXT_NODE||morphedNodeType===COMMENT_NODE){if(toNodeType===morphedNodeType){if(morphedNode.nodeValue!==toNode.nodeValue){morphedNode.nodeValue=toNode.nodeValue}return morphedNode}else{morphedNode=toNode}}}if(morphedNode===toNode){onNodeDiscarded(fromNode)}else{if(toNode.isSameNode&&toNode.isSameNode(morphedNode)){return}morphEl(morphedNode,toNode,childrenOnly);if(keyedRemovalList){for(var i=0,len=keyedRemovalList.length;i<len;i++){var elToRemove=fromNodesLookup[keyedRemovalList[i]];if(elToRemove){removeNode(elToRemove,elToRemove.parentNode,false)}}}}if(!childrenOnly&&morphedNode!==fromNode&&fromNode.parentNode){if(morphedNode.actualize){morphedNode=morphedNode.actualize(fromNode.ownerDocument||doc)}fromNode.parentNode.replaceChild(morphedNode,fromNode)}return morphedNode}}var morphdom=morphdomFactory(morphAttrs);return morphdom});</script>
+<script>
+/* Minimal template runtime: {{holes}}, <sc-for>, <sc-if>, event attributes, re-render with DOM morphing. */
+(function () {
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var HOLE = /\{\{\s*([^}]+?)\s*\}\}/g;
+  var WHOLE = /^\{\{\s*([^}]+?)\s*\}\}$/;
+  var EVENTS = { onclick: 'click', onmouseenter: 'enter', onmouseleave: 'leave', onfocus: 'focus', onblur: 'blur', onchange: 'change', oninput: 'change' };
+  var BOOL_PROPS = { checked: 1, disabled: 1 };
+  var handlers = {}, hid = 0;
+
+  function lookup(scope, path) {
+    if (path === 'true') return true;
+    if (path === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(path)) return parseFloat(path);
+    var parts = path.split('.'), v = scope[parts[0]];
+    for (var i = 1; i < parts.length && v != null; i++) v = v[parts[i]];
+    return v;
+  }
+  function interp(str, scope) {
+    return str.replace(HOLE, function (_, p) { var v = lookup(scope, p); return v == null ? '' : String(v); });
+  }
+
+  function build(node, scope, inSvg, out) {
+    if (node.nodeType === 3) { out.push(document.createTextNode(interp(node.nodeValue, scope))); return; }
+    if (node.nodeType !== 1) return;
+    var tag = node.localName;
+    if (tag === 'sc-for') {
+      var list = lookup(scope, node.getAttribute('list').replace(WHOLE, '$1')) || [];
+      var as = node.getAttribute('as') || 'item';
+      list.forEach(function (item, i) {
+        var child = Object.create(scope); child[as] = item; child.$index = i;
+        node.childNodes.forEach(function (c) { build(c, child, inSvg, out); });
+      });
+      return;
+    }
+    if (tag === 'sc-if') {
+      if (lookup(scope, node.getAttribute('value').replace(WHOLE, '$1'))) node.childNodes.forEach(function (c) { build(c, scope, inSvg, out); });
+      return;
+    }
+    var svg = inSvg || tag === 'svg';
+    var el = svg ? document.createElementNS(SVG_NS, tag) : document.createElement(tag);
+    Array.prototype.forEach.call(node.attributes, function (a) {
+      var name = a.name, raw = a.value, lname = name.toLowerCase();
+      if (lname.indexOf('hint-') === 0) return;
+      var whole = raw.match(WHOLE);
+      if (EVENTS[lname]) {
+        var fn = whole ? lookup(scope, whole[1]) : null;
+        if (typeof fn === 'function') { var id = 'h' + (hid++); handlers[id] = fn; el.setAttribute('data-ev-' + EVENTS[lname], id); }
+        return;
+      }
+      var val = whole ? lookup(scope, whole[1]) : interp(raw, scope);
+      if (BOOL_PROPS[lname]) { if (whole ? !!val : true) el.setAttribute(lname, ''); return; }
+      if (val == null || val === false && lname.indexOf('aria-') !== 0) return;
+      el.setAttribute(name, String(val));
+      if (lname === 'value' && !svg) el.value = String(val);
+    });
+    var kids = [];
+    var src = tag === 'template' ? node.content : node;
+    src.childNodes.forEach(function (c) { build(c, scope, svg, kids); });
+    kids.forEach(function (k) { el.appendChild(k); });
+    out.push(el);
+  }
+
+  function findHandler(e, kind) {
+    var t = e.target;
+    while (t && t !== document) {
+      if (t.getAttribute && t.getAttribute('data-ev-' + kind)) return { el: t, fn: handlers[t.getAttribute('data-ev-' + kind)] };
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+  window.DCLogic = function DCLogic(props) { this.props = props || {}; this.state = {}; };
+  DCLogic.prototype.setState = function (patch) {
+    var s = typeof patch === 'function' ? patch(this.state) : patch;
+    this.state = Object.assign({}, this.state, s);
+    this._schedule();
+  };
+  DCLogic.prototype.forceUpdate = function () { this._schedule(); };
+
+  window.mountDC = function (Component, tpl, root) {
+    var comp = new Component({});
+    var queued = false;
+    function render() {
+      queued = false;
+      handlers = {}; hid = 0;
+      var out = [];
+      tpl.content.childNodes.forEach(function (c) { build(c, comp.renderVals(), false, out); });
+      var next = document.createElement('div');
+      out.forEach(function (n) { next.appendChild(n); });
+      morphdom(root, next, {
+        childrenOnly: true,
+        onBeforeElUpdated: function (from, to) {
+          if (from.tagName === 'INPUT' && from.type === 'range' && document.activeElement === from && from.value === to.value) return true;
+          return true;
+        }
+      });
+    }
+    comp._schedule = function () { if (!queued) { queued = true; Promise.resolve().then(render); } };
+    root.addEventListener('click', function (e) { var h = findHandler(e, 'click'); if (h) h.fn(e); });
+    root.addEventListener('mouseover', function (e) { var h = findHandler(e, 'enter'); if (h && !(e.relatedTarget && h.el.contains(e.relatedTarget))) h.fn(e); });
+    root.addEventListener('mouseout', function (e) { var h = findHandler(e, 'leave'); if (h && !(e.relatedTarget && h.el.contains(e.relatedTarget))) h.fn(e); });
+    root.addEventListener('focusin', function (e) { var h = findHandler(e, 'focus'); if (h) h.fn(e); });
+    root.addEventListener('focusout', function (e) { var h = findHandler(e, 'blur'); if (h) h.fn(e); });
+    root.addEventListener('input', function (e) { if (e.target.type === 'checkbox') return; var h = findHandler(e, 'change'); if (h) h.fn(e); });
+    root.addEventListener('change', function (e) { if (e.target.type !== 'checkbox') return; var h = findHandler(e, 'change'); if (h) h.fn(e); });
+    render();
+    if (comp.componentDidMount) comp.componentDidMount();
+  };
+})();
+
+</script>
+<script>
+var CL = {
+  JA:  { qid: 'Q27966578', name: 'Josh Allen', tint: '#F2D9E3', strong: '#A8436F', c: 1.0 },
+  BB:  { qid: 'Q221626', name: 'Buffalo Bills', tint: '#D3E8C6', strong: '#467F32', c: 1.0 },
+  BUF: { qid: 'Q40435', name: 'Buffalo, New York', tint: '#F7DDB8', strong: '#A5611F', c: 1.0 },
+  HO:  { qid: 'Q93565992', name: 'John R. Oishei Children’s Hospital', tint: '#DDD6F3', strong: '#5F4AAE', c: 0.83 }
+};
+
+// Figure 2 document. Mention tuple: [id, text, cluster, H, EL, badge, parentId]
+// Scores for the four numbered mentions come from Figure 2; the rest are illustrative.
+var CHUNKS = [
+  { label: 'Chunk 1', lead: '', segs: [
+    ['m1', 'Josh Allen', 'JA', 0, 0.93], ' ',
+    ['m2', 'Joshua Patrick Allen', 'JA', 0, 0.88], ' (born May 21, 1996) is an American professional football quarterback for the ',
+    ['m3', 'Buffalo Bills', 'BB', 1, 0.90, '1'], ' of the National Football League (NFL). ',
+    ['m4', 'He', 'JA', 0, 0], ' played college football for the Wyoming Cowboys and was selected seventh overall by ',
+    ['m5', 'the Bills', 'BB', 0, 0.83], ' in the 2018 NFL draft. During ',
+    ['m6', 'his', 'JA', 0, 0], ' ',
+    ['m7', 'Buffalo', 'BB', 0, 0, '2'], ' tenure, ',
+    ['m8', 'he', 'JA', 0, 0], ' has led ',
+    ['m9', 'the team', 'BB', 0, 0, '3'], ' to a total of six playoff appearances, five consecutive division titles, seven postseason victories, and two conference championship game appearances. ',
+    ['m10', 'Allen', 'JA', 0, 0.41], ' had a breakout season in 2020 when ',
+    ['m11', 'he', 'JA', 0, 0], ' led ',
+    ['m12', 'the Bills', 'BB', 0, 0.79], ' to ',
+    ['m13', 'their', 'BB', 0, 0], ' first division title and playoff victory since 1995 en route to an AFC Championship Game appearance.'
+  ] },
+  { label: 'Chunk 2', lead: '…', segs: [
+    'company founded and based in ',
+    ['m14', 'Buffalo, New York', 'BUF', 1, 0.99], '. ',
+    ['m15', 'Allen', 'JA', 0, 0.38], ' is a spokesperson for the ',
+    ['m16', 'John R. Oishei Children’s Hospital in ', 'HO', 1, 0.57],
+    ['m17', 'Buffalo', 'BUF', 0, 0.98, '4', 'm16'], '. As part of a deal with ',
+    ['m18', 'the hospital', 'HO', 0, 0], ', ',
+    ['m19', 'Allen', 'JA', 0, 0.44], ' makes appearances, visits patients, and is in commercials to support fundraising efforts. During the 2019 season, ',
+    ['m20', 'Allen', 'JA', 0, 0.52], ' donated $200 to ',
+    ['m21', 'the hospital', 'HO', 0, 0], ' for each of ',
+    ['m22', 'his', 'JA', 0, 0], ' touchdowns.'
+  ] }
+];
+
+var M = {};
+var ORDER = [];
+CHUNKS.forEach(function (ch, ci) {
+  ch.segs.forEach(function (s) {
+    if (Array.isArray(s)) {
+      M[s[0]] = { id: s[0], text: s[1], surface: s[1], cl: s[2], H: s[3], EL: s[4], C: CL[s[2]].c, badge: s[5] || '', parent: s[6] || null, chunk: ci };
+      ORDER.push(s[0]);
+    }
+  });
+});
+M.m16.surface = 'John R. Oishei Children’s Hospital in Buffalo';
+
+// ---------- Training-step explorer (example data) ----------
+var BIBTEX = "@article{10.1162/TACL.a.746,\n    author = {Gottesman, Daniela and Gilaie-Dotan, Alon and Cohen, Ido and Gur-Arieh, Yoav and Mosbach, Marius and Yoran, Ori and Geva, Mor},\n    title = {LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations},\n    journal = {Transactions of the Association for Computational Linguistics},\n    volume = {14},\n    pages = {1654-1691},\n    year = {2026},\n    month = {07},\n    abstract = {Language models (LMs) increasingly drive real-world applications that require world knowledge. However, the internal processes through which models turn data into representations of knowledge and beliefs about the world are poorly understood. To facilitate such studies, we present LMEnt, a suite including (1) a knowledge-rich pretraining corpus, fully annotated with entity mentions based on Wikipedia, (2) an entity-based retrieval method over pretraining data that outperforms existing tools by as much as 80.4\\%, and (3) 12 pretrained LMs with up to 1B parameters and 4K intermediate checkpoints, with comparable performance to popular open-source models on knowledge tasks. Together, these resources provide a controlled environment for analyzing connections between entity mentions in pretraining data and downstream performance. We show the utility of LMEnt by studying knowledge acquisition over training, finding that entity co-occurrence and mention forms—which are difficult to study with existing tools—affect learning trends. Moreover, as LMs form stronger associations between entities, their facts are harder to edit in-context, whereas inconsistencies in model predictions over training are indicative of editing success. We release LMEnt to support studies of knowledge in LMs, including knowledge representations, plasticity, editing, attribution, hallucinations, and learning dynamics.huggingface.co/LMEntgithub.com/LMEnt},\n    issn = {2307-387X},\n    doi = {10.1162/TACL.a.746},\n    url = {https://doi.org/10.1162/TACL.a.746},\n    eprint = {https://direct.mit.edu/tacl/article-pdf/doi/10.1162/TACL.a.746/2612499/tacl.a.746.pdf},\n}";
+
+var TOTAL = 110000;
+function fromFig(ci, doc) {
+  var ch = CHUNKS[ci];
+  return { doc: doc, lead: ch.lead, segs: ch.segs.map(function (s) {
+    if (!Array.isArray(s)) return s;
+    var m = M[s[0]];
+    return { t: m.text, surface: m.surface, q: CL[m.cl].qid, pq: m.parent ? CL[M[m.parent].cl].qid : null, H: m.H, EL: m.EL, C: m.C };
+  }) };
+}
+function mk(t, q, H, EL, C) { return { t: t, surface: t, q: q, H: H, EL: EL, C: C }; }
+var BB = 'Q221626', BUF = 'Q40435', JA = 'Q27966578', HO = 'Q93565992';
+// One pool of training chunks, each seen at exactly one training step (single epoch).
+// Chunks are excerpts from English Wikipedia. H = 1 only where the article hyperlinks the
+// mention (an article's own title is bold, not linked, so H = 0 there). EL and C are illustrative.
+var POOL = [
+  fromFig(0, 'Josh Allen'),
+  fromFig(1, 'Josh Allen'),
+  { doc: 'Buffalo Bills', lead: '', segs: ['The ', mk('Buffalo Bills', BB, 0, 0.97, 1), ' are a professional American football team based in the Buffalo–Niagara Falls metropolitan area. ', mk('The Bills', BB, 0, 0.88, 1), ' compete in the National Football League (NFL) as a member of the American Football Conference (AFC) East division. ', mk('The team', BB, 0, 0, 1), ' plays ', mk('its', BB, 0, 0, 1), ' home games at Highmark Stadium in Orchard Park, New York.'] },
+  { doc: 'Buffalo Bills', lead: '…', segs: ['Founded in 1959 as a charter member of the American Football League (AFL), ', mk('the team', BB, 0, 0, 1), ' joined the NFL in 1970 after the AFL–NFL merger. ', mk('The team’s', BB, 0, 0, 1), ' name is taken from an All-America Football Conference (AAFC) franchise from Buffalo that was named after western frontiersman Buffalo Bill.'] },
+  { doc: 'Buffalo Bills', lead: '…', segs: [mk('The Bills', BB, 0, 0.86, 1), ' advanced to the AFL Championship Game three years in a row from 1964 to 1966, winning the first two—the only major professional sports championships for a team representing ', mk('Buffalo', BUF, 0, 0.90, 1), '.'] },
+  { doc: 'Buffalo Bills', lead: '…', segs: [mk('They', BB, 0, 0, 0.94), ' struggled heavily in the latter years of the AFL and for much of ', mk('their', BB, 0, 0, 0.94), ' first two decades in the NFL, tallying only five winning seasons and three postseason berths from 1967 to 1987. ', mk('They', BB, 0, 0, 0.94), ' became perennial postseason contenders in the late 1980s; from 1990 to 1993, ', mk('they', BB, 0, 0, 0.94), ' appeared in a record four consecutive Super Bowls and lost each one.'] },
+  { doc: 'Jim Kelly', lead: '', segs: ['James Edward Kelly (born February 14, 1960) is an American former professional football quarterback who played in the National Football League (NFL) for 11 seasons with the ', mk('Buffalo Bills', BB, 1, 0.96, 1), '. He also spent two seasons with the Houston Gamblers of the United States Football League (USFL).'] },
+  { doc: 'Buffalo, New York', lead: '', segs: [mk('Buffalo', BUF, 0, 0.95, 1), ' is a city in the U.S. state of New York. ', mk('It', BUF, 0, 0, 1), ' lies in Western New York on the eastern shore of Lake Erie and at the head of the Niagara River on the Canada–United States border. ', mk('It', BUF, 0, 0, 1), ' is the second-most populous city in New York, with a population of 278,349 at the 2020 census.'] },
+  { doc: 'Buffalo, New York', lead: '…', segs: [mk('Buffalo', BUF, 0, 0.94, 1), ' is the county seat of Erie County.'] },
+  { doc: 'Buffalo, New York', lead: '…', segs: [mk('Buffalo', BUF, 0, 0.93, 1), ' was selected as the terminus of the Erie Canal in 1825, which led to ', mk('its', BUF, 0, 0, 1), ' incorporation in 1832 and stimulated ', mk('its', BUF, 0, 0, 1), ' growth as the primary inland port between the Great Lakes and Atlantic Ocean. Transshipment made ', mk('Buffalo', BUF, 0, 0.91, 1), ' the world’s largest grain port in that era.'] },
+  { doc: 'Buffalo, New York', lead: '…', segs: ['After the coming of railroads greatly reduced the canal’s importance, ', mk('the city', BUF, 0, 0, 0.9), ' became the second-largest railway hub (after Chicago), and ', mk('the city', BUF, 0, 0, 0.9), ' came to be dominated by steel production by the 20th century.'] },
+  { doc: 'Buffalo, New York', lead: '…', segs: ['In 2019, the gross domestic product of the Buffalo–Niagara Falls metropolitan area was $53 billion (~$64 billion in 2024). ', mk('The city’s', BUF, 0, 0, 0.9), ' cultural landmarks include the oldest urban parks system in the United States, the Buffalo AKG Art Museum, the Buffalo History Museum, and the Buffalo Philharmonic Orchestra.'] },
+  { doc: 'Buffalo, New York', lead: '…', segs: [mk('Buffalo', BUF, 0, 0.92, 1), ' is also known for ', mk('its', BUF, 0, 0, 1), ' winter weather, Buffalo wings, and two major-league sports teams: the National Football League’s ', mk('Buffalo Bills', BB, 1, 0.99, 1), ' and the National Hockey League’s Buffalo Sabres.'] },
+  { doc: 'Josh Allen', lead: '…', segs: [mk('He', JA, 0, 0, 1), ' is regarded as one of the greatest dual-threat quarterbacks of all time and is the NFL leader in quarterback rushing touchdowns. A lightly recruited high school prospect, ', mk('Allen', JA, 0, 0.45, 1), ' began ', mk('his', JA, 0, 0, 1), ' college football career with the Reedley Tigers before transferring to the Wyoming Cowboys.'] },
+  { doc: 'Josh Allen', lead: '', segs: [mk('Allen', JA, 0, 0.51, 1), ' had a breakout season in 2020 when ', mk('he', JA, 0, 0, 1), ' led ', mk('the Bills', BB, 0, 0.82, 1), ' to ', mk('their', BB, 0, 0, 1), ' first division title and playoff victory since 1995 en route to an AFC Championship Game appearance. As ', mk('the team’s', BB, 0, 0, 1), ' starting quarterback, ', mk('he', JA, 0, 0, 1), ' has led ', mk('Buffalo', BB, 0, 0, 1), ' to a total of seven playoff appearances, five consecutive division titles, and two conference championship game berths.'] },
+  { doc: 'Josh Allen', lead: '…', segs: [mk('He', JA, 0, 0, 1), ' was named NFL Most Valuable Player in 2024 and has also received four Pro Bowl and two second-team All-Pro selections.'] },
+  { doc: 'Josh Allen', lead: '', segs: ['Through the first two weeks, ', mk('Allen', JA, 0, 0.49, 1), ' joined Peyton Manning (2013), Tom Brady (2015), and Patrick Mahomes (2019) as the only four quarterbacks in NFL history with at least 700 yards passing, six touchdowns, and no interceptions through the first two weeks of a season.'] },
+  { doc: 'John R. Oishei Children’s Hospital', lead: '', segs: [mk('John R. Oishei Children’s Hospital', HO, 0, 0.86, 0.83), ' (', mk('OCH', HO, 0, 0.31, 0.83), '), sometimes known as simply ', mk('Oishei Children’s', HO, 0, 0.62, 0.83), ' is a women’s and children’s hospital in ', mk('Buffalo', BUF, 1, 0.90, 1), ', New York, that opened on November 10, 2017.'] },
+  { doc: 'John R. Oishei Children’s Hospital', lead: '…', segs: [mk('It', HO, 0, 0, 0.83), ' is located at the Buffalo Niagara Medical Campus and has 185 inpatient beds.'] },
+  { doc: 'John R. Oishei Children’s Hospital', lead: '…', segs: [mk('The hospital', HO, 0, 0, 0.83), ' contains an ACS verified level 1 pediatric trauma center, one of the few in the region. ', mk('OCH', HO, 0, 0.34, 0.83), ' also has a rooftop helipad to transport critically ill patients to and from ', mk('the hospital', HO, 0, 0, 0.83), '.'] }
+];
+var QMETA = {}; QMETA[BB] = CL.BB; QMETA[BUF] = CL.BUF; QMETA[JA] = CL.JA; QMETA[HO] = CL.HO;
+var QLIST = [BB, BUF, JA, HO];
+
+function rng(seed) {
+  var x = (seed >>> 0) || 1;
+  return function () { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+}
+function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function lossAt(t) { return 2.4 + 5.6 * Math.exp(-t / 1200) + 0.55 * Math.exp(-t / 35000) + 0.2 * (1 - t / TOTAL); }
+function yOf(L) { return 20 + (1 - (L - 2.0) / 6.9) * 290; }
+function isExplicit(s) { return s.H >= 1 || s.EL > 0; }
+
+var LOSS_POINTS = (function () {
+  var r = rng(7), pts = [];
+  for (var t = 0; t <= TOTAL; t += (t < 6000 ? 100 : 200)) {
+    var n = (r() + r() + r() - 1.5) * 0.12;
+    if (r() < 0.03) n += r() * 0.22;
+    pts.push((t / TOTAL * 1000).toFixed(1) + ',' + yOf(lossAt(t) + n).toFixed(1));
+  }
+  return pts.join(' ');
+})();
+
+// Each chunk gets one unique training step; an entity's markers are the steps of the chunks that mention it.
+var STEPS = (function () {
+  var r = rng(20250903), used = {}, out = [];
+  POOL.forEach(function () {
+    var t;
+    do { t = Math.round((3000 + r() * 105000) / 1000) * 1000; } while (used[t]);
+    used[t] = 1; out.push(t);
+  });
+  return out;
+})();
+var MARKERS = {};
+QLIST.forEach(function (q) {
+  var list = [];
+  POOL.forEach(function (chunk, i) {
+    var ms = chunk.segs.filter(function (s) { return typeof s !== 'string' && (s.q === q || s.pq === q); });
+    if (!ms.length) return;
+    list.push({ t: STEPS[i], ex: i, explicit: ms.some(function (s) { return s.q === q && isExplicit(s); }) });
+  });
+  list.sort(function (a, b) { return a.t - b.t; });
+  MARKERS[q] = list;
+});
+
+function fmt2(v) { return v.toFixed(2); }
+
+// ---------- Paper figures (values read from the paper's figures) ----------
+var INK2 = '#5E5A55', GRID = '#EDEFF2', AXIS = '#1C1B1A';
+var FAM = { LMEnt: '#9CC98A', Base: '#9CC98A', Pythia: '#8883D0', OLMo: '#F0B882', SmolLM2: '#9DE0E3' };
+var SHAPE = { LMEnt: 'circle', Base: 'circle', Pythia: 'diamond', OLMo: 'square', SmolLM2: 'triangle' };
+var SUP = { '-3': '⁻³', '-2': '⁻²', '-1': '⁻¹', '0': '⁰', '1': '¹', '2': '²', '3': '³' };
+
+function r1(v) { return Math.round(v * 10) / 10; }
+function shapePath(kind, x, y, r) {
+  if (kind === 'circle') return 'M' + (x - r) + ',' + y + 'a' + r + ',' + r + ' 0 1,0 ' + (2 * r) + ',0a' + r + ',' + r + ' 0 1,0 ' + (-2 * r) + ',0Z';
+  if (kind === 'square') { var s = r * 0.9; return 'M' + (x - s) + ',' + (y - s) + 'h' + (2 * s) + 'v' + (2 * s) + 'h' + (-2 * s) + 'Z'; }
+  if (kind === 'diamond') { var q = r * 1.25; return 'M' + x + ',' + (y - q) + 'L' + (x + q) + ',' + y + 'L' + x + ',' + (y + q) + 'L' + (x - q) + ',' + y + 'Z'; }
+  var t = r * 1.2; return 'M' + x + ',' + (y - t) + 'L' + (x + t) + ',' + (y + t * 0.8) + 'L' + (x - t) + ',' + (y + t * 0.8) + 'Z';
+}
+function cBase(w, h, aria) { return { w: w, h: h, aria: aria, paths: [], rects: [], over: [], marks: [], labels: [], hits: [], infos: [], tip: { show: false, style: '', title: '', body: '' } }; }
+// Labels are HTML overlays; (x, y) is the visual centre line of the text in chart units.
+function cTxt(c, x, y, t, o) {
+  o = o || {};
+  var tx = o.anchor === 'middle' ? '-50%' : (o.anchor === 'end' ? '-100%' : '0');
+  var tr = o.rot ? 'translate(-50%,-50%) rotate(-90deg)' : 'translate(' + tx + ',-50%)';
+  c.labels.push({ t: t, style: 'left:' + (x / c.w * 100).toFixed(2) + '%;top:' + (y / c.h * 100).toFixed(2) + '%;transform:' + tr + ';font-size:' + (o.size || 12) + 'px;color:' + (o.fill || INK2) + ';font-weight:' + (o.weight || 400) });
+}
+function cOver(c, d, o) { o = o || {}; c.over.push({ d: d, stroke: o.stroke || 'none', sw: o.sw || 1, fill: o.fill || 'none' }); }
+function cPath(c, d, o) { o = o || {}; c.paths.push({ d: d, stroke: o.stroke || 'none', sw: o.sw || 1, dash: o.dash || 'none', fill: o.fill || 'none', op: o.op == null ? 1 : o.op }); }
+function cInfo(c, x, y, title, body) { c.infos.push({ x: x, y: y, title: title, body: body }); return c.infos.length - 1; }
+function cHit(c, x, y, r, i) { c.hits.push({ cx: r1(x), cy: r1(y), r: r, i: i }); }
+function cRect(c, x, y, w, h, fill, o) { o = o || {}; c.rects.push({ x: r1(x), y: r1(y), w: Math.max(0, r1(w)), h: Math.max(0, r1(h)), fill: fill, op: o.op == null ? 1 : o.op, stroke: o.stroke || 'none', sw: o.sw || 0, rx: o.rx || 0, i: o.i == null ? -1 : o.i }); }
+function yGrid(c, x0, x1, ys, ticks, fmt, noGrid) {
+  ticks.forEach(function (v) { var y = ys(v); if (!noGrid) cPath(c, 'M' + x0 + ',' + r1(y) + 'H' + x1, { stroke: GRID }); cPath(c, 'M' + (x0 - 4) + ',' + r1(y) + 'H' + x0, { stroke: AXIS }); cTxt(c, x0 - 8, y, fmt(v), { anchor: 'end' }); });
+}
+function frame(c, x0, x1, yt, yb) { cPath(c, 'M' + x0 + ',' + yt + 'H' + x1 + 'V' + yb + 'H' + x0 + 'Z', { stroke: AXIS }); }
+function linePath(pts) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + r1(p[0]) + ',' + r1(p[1]); }).join(''); }
+
+// Hatching drawn as clipped line segments (no SVG patterns needed).
+function hatch(x0, y0, x1, y1, dir, step) {
+  var d = '', c, xa, xb;
+  if (x1 - x0 < 1 || y1 - y0 < 1) return '';
+  if (dir === '/') {
+    for (c = x0 + y0 + step / 2; c < x1 + y1; c += step) {
+      xa = Math.max(x0, c - y1); xb = Math.min(x1, c - y0);
+      if (xb > xa) d += 'M' + r1(xa) + ',' + r1(c - xa) + 'L' + r1(xb) + ',' + r1(c - xb);
+    }
+  } else {
+    for (c = y0 - x1 + step / 2; c < y1 - x0; c += step) {
+      xa = Math.max(x0, y0 - c); xb = Math.min(x1, y1 - c);
+      if (xb > xa) d += 'M' + r1(xa) + ',' + r1(xa + c) + 'L' + r1(xb) + ',' + r1(xb + c);
+    }
+  }
+  return d;
+}
+function ringCols(x0, y0, x1, y1, cols, step, r) {
+  // Fixed number of columns, each centred in its lane; radius shrinks to fit the bar width.
+  var lane = (x1 - x0) / cols, rr = Math.min(r, lane / 2 - 1.2);
+  if (rr < 0.6 || y1 - y0 < 2 * rr + 2) return '';
+  var h = y1 - y0 - 2 * (rr + 1.5), ny = Math.max(1, Math.floor(h / step) + 1), sy = ny > 1 ? h / (ny - 1) : 0;
+  var oy = ny > 1 ? y0 + rr + 1.5 : (y0 + y1) / 2, d = '';
+  for (var j = 0; j < ny; j++) for (var i = 0; i < cols; i++) d += shapePath('circle', r1(x0 + (i + 0.5) * lane), r1(oy + j * sy), rr);
+  return d;
+}
+function dots(x0, y0, x1, y1, step, r) {
+  // Evenly spaced marks kept fully inside the bar (with a small inset).
+  var pad = r + 1.2, w = x1 - x0 - 2 * pad, h = y1 - y0 - 2 * pad;
+  if (w < 0 || h < 0) return '';
+  var nx = Math.max(1, Math.floor(w / step) + 1), ny = Math.max(1, Math.floor(h / step) + 1);
+  var sx = nx > 1 ? w / (nx - 1) : 0, sy = ny > 1 ? h / (ny - 1) : 0;
+  var ox = nx > 1 ? x0 + pad : (x0 + x1) / 2, oy = ny > 1 ? y0 + pad : (y0 + y1) / 2;
+  var d = '';
+  for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) d += shapePath('circle', r1(ox + i * sx), r1(oy + j * sy), r);
+  return d;
+}
+
+// Figure 3
+var PARETO = [
+  { f: 'Base', lab: '1B-0S', x: 0.00105, y: 0.01, dx: 12, dy: -12, a: 'start' },
+  { f: 'Base', lab: '1B-10KS', x: 0.002, y: 0.285, dx: 14, dy: 0, a: 'start' },
+  { f: 'LMEnt', lab: '170M-6E', x: 0.022, y: 0.33, dx: 14, dy: 0, a: 'start' },
+  { f: 'LMEnt', lab: '600M-6E', x: 0.075, y: 0.61, dx: -14, dy: 0, a: 'end' },
+  { f: 'LMEnt', lab: '1B-6E', x: 0.125, y: 0.66, dx: -14, dy: -4, a: 'end' },
+  { f: 'Pythia', lab: '160M', x: 0.3, y: 0.215, dx: 16, dy: 0, a: 'start' },
+  { f: 'Pythia', lab: '410M', x: 0.75, y: 0.53, dx: -16, dy: 0, a: 'end' },
+  { f: 'Pythia', lab: '1B', x: 1.8, y: 0.61, dx: -16, dy: -12, a: 'end' },
+  { f: 'Pythia', lab: '1.4B', x: 2.5, y: 0.665, dx: 0, dy: -22, a: 'middle' },
+  { f: 'OLMo', lab: '1B-20K-84B', x: 0.5, y: 0.46, dx: 16, dy: 0, a: 'start' },
+  { f: 'OLMo', lab: '1B', x: 17, y: 0.66, dx: -14, dy: -4, a: 'end' },
+  { f: 'OLMo', lab: '2-1B', x: 24, y: 0.735, dx: 0, dy: -22, a: 'middle' },
+  { f: 'SmolLM2', lab: '135M', x: 9, y: 0.59, dx: 14, dy: 16, a: 'start' },
+  { f: 'SmolLM2', lab: '360M', x: 24, y: 0.685, dx: 16, dy: 12, a: 'start' },
+  { f: 'SmolLM2', lab: '1.7B', x: 115, y: 0.73, dx: 16, dy: 0, a: 'start' }
+];
+function fmtFlops(v) { return v >= 1 ? (v >= 10 ? Math.round(v) : v.toFixed(1)) : v.toPrecision(2); }
+function buildPareto() {
+  var w = 700, h = 470, x0 = 64, x1 = w - 16, yb = h - 52, yt = 12;
+  var c = cBase(w, h, 'PopQA accuracy against compute for LMEnt, OLMo, Pythia and SmolLM2 models');
+  var xs = function (v) { return x0 + (Math.log10(v) + 3) / 6 * (x1 - x0); };
+  var ys = function (v) { return yb - v / 0.85 * (yb - yt); };
+  for (var e = -3; e <= 3; e++) { var xx = xs(Math.pow(10, e)); cPath(c, 'M' + r1(xx) + ',' + yt + 'V' + yb, { stroke: GRID }); cPath(c, 'M' + r1(xx) + ',' + yb + 'V' + (yb + 4), { stroke: AXIS }); cTxt(c, xx, yb + 18, '10' + SUP[String(e)], { anchor: 'middle', size: 13 }); }
+  yGrid(c, x0, x1, ys, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], function (v) { return v.toFixed(1); });
+  frame(c, x0, x1, yt, yb);
+  cTxt(c, (x0 + x1) / 2, h - 12, 'FLOPs (trillions, log scale)', { anchor: 'middle', size: 14, fill: '#1C1B1A' });
+  cTxt(c, 18, (yt + yb) / 2, 'Accuracy', { rot: true, size: 14, fill: '#1C1B1A' });
+  ['LMEnt', 'Pythia', 'OLMo', 'SmolLM2'].forEach(function (f) {
+    var pts = PARETO.filter(function (p) { return p.f === f; }).sort(function (a, b) { return a.x - b.x; }).map(function (p) { return [xs(p.x), ys(p.y)]; });
+    if (f === 'LMEnt') pts.splice(1, 0, [xs(0.024), ys(0.42)]);
+    cPath(c, linePath(pts), { stroke: FAM[f], sw: 2.5, dash: '7 5' });
+  });
+  var names = { LMEnt: 'LMEnt-', Base: 'LMEnt ', Pythia: 'Pythia-', OLMo: 'OLMo-', SmolLM2: 'SmolLM2-' };
+  PARETO.forEach(function (p) {
+    var x = xs(p.x), y = ys(p.y);
+    var i = cInfo(c, x, y, names[p.f] + p.lab, 'Accuracy ' + p.y.toFixed(2) + ' · ' + fmtFlops(p.x) + ' TFLOPs');
+    c.marks.push({ d: shapePath(SHAPE[p.f], r1(x), r1(y), 9), fill: FAM[p.f], stroke: p.f === 'Base' ? '#1C1B1A' : 'none', sw: 1.5, i: i });
+    cTxt(c, x + p.dx, y + p.dy, p.lab, { anchor: p.a, size: 13, fill: '#1C1B1A' });
+    cHit(c, x, y, 14, i);
+  });
+  return c;
+}
+
+// Figure 6
+var KS = ['1', '5', '10', '100', '1K', '10K', '25K', '50K', '100K'];
+var KCOL = ['#7F7F7F', '#E3A09C', '#E8B98A', '#EDE3A5', '#8DC47C', '#A6DCD9', '#9C9ACB', '#6870CF', '#DDA6E2'];
+var PBOX = [
+  { n: 'LMEnt', b: [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [.8, .9, 1, 1, 1], [.95, .98, 1, 1, 1], [.95, .98, .99, 1, 1], [.95, .98, .99, .99, 1], [.89, .95, .98, .99, 1], [.88, .94, .97, .99, 1], [.89, .94, .97, .99, 1]] },
+  { n: 'CS-SS Canonical', b: [[1, 1, 1, 1, 1], [.6, .8, 1, 1, 1], [.6, .8, 1, 1, 1], [.72, .88, .97, .99, 1], [.75, .88, .94, .97, 1], [.63, .81, .89, .94, 1], [.49, .75, .87, .93, 1], [.46, .74, .84, .94, 1], [.59, .76, .84, .91, .99]] },
+  { n: 'CI-SS Expanded', b: [[1, 1, 1, 1, 1], [0, .6, 1, 1, 1], [0, .5, .9, 1, 1], [.02, .32, .84, .97, 1], [0, .18, .70, .94, 1], [0, .09, .52, .80, 1], [0, .08, .53, .77, .99], [0, .06, .46, .74, .99], [0, .05, .27, .70, .98]] }
+];
+function buildPrecision() {
+  var w = 480, h = 360, x0 = 56, x1 = w - 8, yb = h - 44, yt = 10;
+  var c = cBase(w, h, 'Precision at retrieval depths k for LMEnt, CS-SS Canonical and CI-SS Expanded');
+  var ys = function (v) { return yb - v * (yb - yt); };
+  yGrid(c, x0, x1, ys, [0, 0.2, 0.4, 0.6, 0.8, 1.0], function (v) { return v.toFixed(1); }, true);
+  frame(c, x0, x1, yt, yb);
+  cTxt(c, 14, (yt + yb) / 2, 'Precision@k', { rot: true, size: 12, fill: '#1C1B1A' });
+  var gw = (x1 - x0) / 3, bw = (gw - 16) / 9;
+  PBOX.forEach(function (g, gi) {
+    var gx = x0 + gi * gw + 8;
+    cTxt(c, x0 + gi * gw + gw / 2, yb + 16, g.n.replace(' ', '\u00a0'), { anchor: 'middle', size: 12, fill: '#1C1B1A' });
+    g.b.forEach(function (v, k) {
+      var L = gx + k * bw, cx = L + bw / 2;
+      var i = cInfo(c, cx, ys(v[3]), g.n + ' · k = ' + KS[k], 'Median ' + v[2].toFixed(2) + ' · IQR ' + v[1].toFixed(2) + '–' + v[3].toFixed(2));
+      cPath(c, 'M' + r1(cx) + ',' + r1(ys(v[4])) + 'V' + r1(ys(v[3])) + 'M' + r1(cx) + ',' + r1(ys(v[1])) + 'V' + r1(ys(v[0])) + 'M' + r1(cx - bw / 4) + ',' + r1(ys(v[0])) + 'H' + r1(cx + bw / 4) + 'M' + r1(cx - bw / 4) + ',' + r1(ys(v[4])) + 'H' + r1(cx + bw / 4), { stroke: '#6B665F', sw: 1 });
+      cRect(c, L, ys(v[3]), bw, Math.max(1, ys(v[1]) - ys(v[3])), KCOL[k], { stroke: '#6B665F', sw: 0.8, i: i });
+      cOver(c, 'M' + r1(L) + ',' + r1(ys(v[2])) + 'H' + r1(L + bw), { stroke: '#1C1B1A', sw: 2 });
+      cRect(c, L, yt, bw, yb - yt, '#FFFFFF', { op: 0, i: i });
+    });
+  });
+  return c;
+}
+
+// Figure 8
+var LF_INT = ['0–20K', '20K–40K', '40K–60K', '60K–80K', '80K–100K', 'Sum'];
+var LF_BINS = ['1–10', '10–100', '100–1K', '1K+'];
+var LF = {
+  Overall: { dom: [-7.5, 15], ticks: [-5, 0, 5, 10, 15], data: [
+    { l: [1.3, 1.0, 1.9, 1.2, 2.3, 7.9], f: [0, -0.6, -0.4, -1.4, -0.8, -3.2] },
+    { l: [1.7, 1.1, 2.2, 1.6, 2.9, 9.7], f: [0, -0.8, -0.5, -1.6, -0.9, -3.9] },
+    { l: [2.7, 1.4, 2.3, 2.4, 3.6, 12.6], f: [0, -1.1, -1.1, -1.8, -1.0, -4.9] },
+    { l: [3.2, 1.5, 2.4, 2.8, 3.8, 13.9], f: [0, -1.3, -1.4, -1.9, -1.0, -5.5] } ] },
+  Country: { dom: [-20, 60], ticks: [-20, 0, 20, 40, 60], data: [
+    { l: [9.2, 3.2, 8.2, 5.8, 25, 51.5], f: [0, -4.5, -1.5, -3.2, -3.2, -12.3] },
+    { l: [10, 3.5, 8.5, 5.5, 25.5, 53], f: [0, -4.5, -1.5, -3, -3.5, -12.3] },
+    { l: [9.5, 3.2, 8, 5.5, 26, 52], f: [0, -4.5, -1.5, -2.5, -3.5, -12] },
+    { l: [9.5, 3.3, 8, 5.5, 26, 52.3], f: [0, -4.5, -1.5, -3, -3.5, -12] } ] },
+  Religion: { dom: [-25, 45], ticks: [-20, 0, 20, 40], data: [
+    { l: [7, 2.8, 7.8, 15, 3.5, 35.8], f: [0, -4, -3, -5.5, -5.7, -18] },
+    { l: [7, 3.2, 7.8, 13.5, 4.2, 35], f: [0, -4.5, -3, -3.5, -5, -16] },
+    { l: [8.5, 3.2, 7.8, 13, 6, 38.5], f: [0, -5.5, -3.5, -3, -5, -17.5] },
+    { l: [9.8, 3.2, 7.8, 13, 7, 40.3], f: [0, -6, -3.5, -4, -5, -18.5] } ] }
+};
+function barTexture(c, k, x0, y0, x1, y1) {
+  if (k === 1) cOver(c, hatch(x0, y0, x1, y1, '/', 5), { stroke: '#1C1B1A', sw: 0.8 });
+  if (k === 2) { cOver(c, hatch(x0, y0, x1, y1, '/', 6) + hatch(x0, y0, x1, y1, '\\', 6), { stroke: '#1C1B1A', sw: 0.7 }); }
+  if (k === 3) cOver(c, hatch(x0, y0, x1, y1, '\\', 5), { stroke: '#1C1B1A', sw: 0.8 });
+  if (k === 4) cOver(c, dots(x0, y0, x1, y1, 5, 0.9), { fill: '#1C1B1A' });
+  if (k === 5) cOver(c, ringCols(x0, y0, x1, y1, 2, 8, 2.4), { stroke: '#1C1B1A', sw: 1 });
+}
+function buildLearnForget(panel) {
+  var P = LF[panel];
+  var w = 480, h = 360, x0 = 56, x1 = w - 8, yb = h - 44, yt = 10;
+  var c = cBase(w, h, '% of facts learned and forgotten by fact frequency and training step interval, ' + panel);
+  var ys = function (v) { return yb - (v - P.dom[0]) / (P.dom[1] - P.dom[0]) * (yb - yt); };
+  yGrid(c, x0, x1, ys, P.ticks, function (v) { return (v > 0 ? '+' : '') + v; });
+  frame(c, x0, x1, yt, yb);
+  cTxt(c, 14, (yt + yb) / 2, '% of Facts Learned / Forgotten', { rot: true, size: 12, fill: '#1C1B1A' });
+  var gw = (x1 - x0) / 4, bw = (gw - 16) / 6;
+  P.data.forEach(function (d, g) {
+    var gx = x0 + g * gw + 8;
+    cTxt(c, x0 + g * gw + gw / 2, yb + 16, LF_BINS[g], { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+    for (var k = 0; k < 6; k++) {
+      var bx = gx + k * bw;
+      var i = cInfo(c, bx + bw / 2, ys(d.l[k]), LF_BINS[g] + ' · ' + (k === 5 ? 'sum of intervals' : 'steps ' + LF_INT[k]), 'Learned +' + d.l[k] + '% · forgotten ' + d.f[k] + '%');
+      cRect(c, bx, ys(d.l[k]), bw, ys(0) - ys(d.l[k]), '#A2CB8B', { stroke: '#1C1B1A', sw: 0.5, i: i });
+      barTexture(c, k, bx, ys(d.l[k]), bx + bw, ys(0));
+      if (d.f[k] < 0) { cRect(c, bx, ys(0), bw, ys(d.f[k]) - ys(0), '#E8918F', { stroke: '#1C1B1A', sw: 0.5, i: i }); barTexture(c, k, bx, ys(0), bx + bw, ys(d.f[k])); }
+      cRect(c, bx, yt, bw, yb - yt, '#FFFFFF', { op: 0, i: i });
+    }
+  });
+  cPath(c, 'M' + x0 + ',' + r1(ys(0)) + 'H' + x1, { stroke: '#1C1B1A', sw: 1.2 });
+  cTxt(c, (x0 + x1) / 2, h - 10, 'Fact Frequency (per Interval)', { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+  return c;
+}
+
+// Figure 9
+var BOX = [
+  { bin: '1–10', c: [1, 1, 1, 1, 1], i: [1, 1, 1, 1, 1] },
+  { bin: '10–1K', c: [.25, .67, .88, 1, 1], i: [.165, .67, .865, 1, 1] },
+  { bin: '1K+', c: [.735, .875, .935, .975, .99], i: [.29, .625, .835, .92, .99] }
+];
+function buildBoxes() {
+  var w = 480, h = 360, x0 = 56, x1 = w - 8, yb = h - 44, yt = 10;
+  var c = cBase(w, h, 'Share of training steps with explicit mentions, for correct and incorrect answers, by fact frequency');
+  var ys = function (v) { return yb - (v - 0.12) / 0.9 * (yb - yt); };
+  yGrid(c, x0, x1, ys, [0.2, 0.4, 0.6, 0.8, 1.0], function (v) { return v.toFixed(1); }, true);
+  cPath(c, 'M' + x0 + ',' + yt + 'V' + yb + 'H' + x1, { stroke: AXIS });
+  cTxt(c, 14, (yt + yb) / 2, '% Steps with Explicit Mentions', { rot: true, size: 12, fill: '#1C1B1A' });
+  var gw = (x1 - x0) / 3, bw = gw / 2 - 8;
+  BOX.forEach(function (b, g) {
+    var cx = x0 + g * gw + gw / 2;
+    cTxt(c, cx, yb + 16, b.bin, { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+    [['c', 'Correct', '#A2CB8B', -1], ['i', 'Incorrect', '#E0A0A0', 1]].forEach(function (s) {
+      var v = b[s[0]], L = s[3] < 0 ? cx - bw : cx, mx = L + bw / 2;
+      var i = cInfo(c, mx, ys(v[3]), b.bin + ' · ' + s[1], 'Median ' + v[2].toFixed(2) + ' · IQR ' + v[1].toFixed(2) + '–' + v[3].toFixed(2));
+      cPath(c, 'M' + r1(mx) + ',' + r1(ys(v[4])) + 'V' + r1(ys(v[3])) + 'M' + r1(mx) + ',' + r1(ys(v[1])) + 'V' + r1(ys(v[0])) + 'M' + r1(mx - bw / 4) + ',' + r1(ys(v[0])) + 'H' + r1(mx + bw / 4) + 'M' + r1(mx - bw / 4) + ',' + r1(ys(v[4])) + 'H' + r1(mx + bw / 4), { stroke: '#666', sw: 1.5 });
+      cRect(c, L, ys(v[3]), bw, Math.max(1, ys(v[1]) - ys(v[3])), s[2], { stroke: '#666', sw: 1.5, i: i });
+      cOver(c, 'M' + r1(L) + ',' + r1(ys(v[2])) + 'H' + r1(L + bw), { stroke: '#444', sw: 2 });
+      cRect(c, L, yt, bw, yb - yt, '#FFFFFF', { op: 0, i: i });
+    });
+  });
+  cTxt(c, (x0 + x1) / 2, h - 10, 'Fact Frequency', { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+  return c;
+}
+
+// Figure 10
+var EDIT_X = ['10K', '100K', '200K', '300K', '400K', '500K', '600K', '6E'];
+var EDIT = [
+  { n: 'Orig–Subj low, CF–Subj low', c: '#2E78B7', dash: 'none', v: [.78, .36, .59, .63, .62, .69, .635, .51] },
+  { n: 'Orig–Subj low, CF–Subj high', c: '#2E78B7', dash: '5 4', v: [.63, .235, .465, .445, .69, .685, .69, .375] },
+  { n: 'Orig–Subj high, CF–Subj low', c: '#D0352F', dash: 'none', v: [.58, .18, .285, .315, .325, .40, .36, .285] },
+  { n: 'Orig–Subj high, CF–Subj high', c: '#D0352F', dash: '5 4', v: [.635, .09, .14, .16, .14, .18, .18, .13] }
+];
+function buildEdit() {
+  var w = 480, h = 360, x0 = 56, x1 = w - 12, yb = h - 44, yt = 10;
+  var c = cBase(w, h, 'In-context edit success across training checkpoints, split by co-occurrence frequency');
+  var xs = function (i) { return x0 + 16 + i / (EDIT_X.length - 1) * (x1 - x0 - 32); };
+  var ys = function (v) { return yb - (v - 0.05) / 0.8 * (yb - yt); };
+  yGrid(c, x0, x1, ys, [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], function (v) { return v.toFixed(1); });
+  EDIT_X.forEach(function (k, i) { cPath(c, 'M' + r1(xs(i)) + ',' + yt + 'V' + yb, { stroke: GRID }); cTxt(c, xs(i), yb + 16, k, { anchor: 'middle', size: 12, fill: '#1C1B1A' }); });
+  frame(c, x0, x1, yt, yb);
+  cTxt(c, 14, (yt + yb) / 2, 'Edit Success Rate', { rot: true, size: 12, fill: '#1C1B1A' });
+  cTxt(c, (x0 + x1) / 2, h - 10, 'Step', { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+  EDIT.forEach(function (s) {
+    var pts = s.v.map(function (v, i) { return [xs(i), ys(v)]; });
+    cPath(c, linePath(pts), { stroke: s.c, sw: 2, dash: s.dash });
+    pts.forEach(function (p, i) {
+      var ii = cInfo(c, p[0], p[1], s.n + ' · ' + EDIT_X[i], 'Edit success ' + s.v[i].toFixed(2));
+      c.marks.push({ d: shapePath('circle', r1(p[0]), r1(p[1]), 3.5), fill: s.c, stroke: 'none', sw: 0, i: ii });
+      cHit(c, p[0], p[1], 9, ii);
+    });
+  });
+  return c;
+}
+
+// Figure 11
+var BRIT = { x: [0.2, 0.4, 0.6, 0.8, 1.0], y: [.25, .28, .277, .313, .415], lo: [.235, .268, .26, .287, .35], hi: [.267, .295, .296, .343, .485] };
+function buildBrittle() {
+  var w = 480, h = 360, x0 = 60, x1 = w - 16, yb = h - 44, yt = 10;
+  var c = cBase(w, h, 'In-context edit success against prediction brittleness for LMEnt-1B');
+  var xs = function (v) { return x0 + 24 + (v - 0.2) / 0.8 * (x1 - x0 - 48); };
+  var ys = function (v) { return yb - (v - 0.22) / 0.28 * (yb - yt); };
+  yGrid(c, x0, x1, ys, [0.25, 0.3, 0.35, 0.4, 0.45], function (v) { return v.toFixed(2); }, true);
+  frame(c, x0, x1, yt, yb);
+  BRIT.x.forEach(function (v) { cPath(c, 'M' + r1(xs(v)) + ',' + yb + 'V' + (yb + 4), { stroke: AXIS }); cTxt(c, xs(v), yb + 16, v.toFixed(1), { anchor: 'middle', size: 12, fill: '#1C1B1A' }); });
+  cTxt(c, 14, (yt + yb) / 2, 'Edit Success Rate', { rot: true, size: 12, fill: '#1C1B1A' });
+  cTxt(c, (x0 + x1) / 2, h - 10, 'Prediction Brittleness', { anchor: 'middle', size: 13, fill: '#1C1B1A' });
+  var up = BRIT.x.map(function (v, i) { return [xs(v), ys(BRIT.hi[i])]; });
+  var dn = BRIT.x.map(function (v, i) { return [xs(v), ys(BRIT.lo[i])]; }).reverse();
+  cPath(c, linePath(up.concat(dn)) + 'Z', { fill: '#2E78B7', op: 0.2 });
+  var pts = BRIT.x.map(function (v, i) { return [xs(v), ys(BRIT.y[i])]; });
+  cPath(c, linePath(pts), { stroke: '#2E78B7', sw: 2 });
+  pts.forEach(function (p, i) {
+    var ii = cInfo(c, p[0], p[1], 'Brittleness ' + BRIT.x[i].toFixed(1), 'Edit success ' + BRIT.y[i].toFixed(2) + ' · band ' + BRIT.lo[i].toFixed(2) + '–' + BRIT.hi[i].toFixed(2));
+    c.marks.push({ d: shapePath('circle', r1(p[0]), r1(p[1]), 4.5), fill: '#2E78B7', stroke: 'none', sw: 0, i: ii });
+    cHit(c, p[0], p[1], 12, ii);
+  });
+  return c;
+}
+
+// Figure 5
+var WINS = [['CI-SS Canonical', 66.7, 12.6, 20.7], ['CI-SS Expanded', 80.4, 9.9, 9.7], ['CS-SS Canonical', 66.3, 12.3, 21.4], ['CS-SS Expanded', 79.1, 9.8, 11.1], ['LMEnt -C', 27.3, 43.9, 28.9], ['LMEnt -EL -C', 43.4, 23.3, 33.3], ['LMEnt -H -C', 52.1, 18.6, 29.3]];
+var WIN_FILL = ['#A2CB8B', '#EFCBCB', '#A9A7E6'];
+function buildWins() {
+  return WINS.map(function (r) {
+    return { label: r[0], segs: [1, 2, 3].map(function (k) {
+      return { t: r[k].toFixed(1), style: 'flex:' + r[k] + ' 1 0%;background:' + WIN_FILL[k - 1] };
+    }) };
+  });
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { useH: true, useEL: true, useC: true, tEL: 0.6, tC: 0.6, hover: null, pinned: null, qidInput: 'Q221626', qid: 'Q221626', sel: 0, showBib: false, copied: '', tip: null, lfPanel: 'Overall' };
+  }
+
+  keep(m) {
+    var s = this.state;
+    return (s.useH && m.H >= 1) || (s.useEL && m.EL >= s.tEL) || (s.useC && m.C >= s.tC);
+  }
+
+  figureVals() {
+    var self = this, s = this.state;
+    var activeId = s.hover || s.pinned;
+    var act = activeId ? M[activeId] : null;
+    var acl = act ? act.cl : null;
+
+    var chunks = CHUNKS.map(function (ch) {
+      return { label: ch.label, lead: ch.lead, segs: ch.segs.map(function (sg) {
+        if (!Array.isArray(sg)) return { isText: true, isMention: false, text: sg };
+        var m = M[sg[0]], c = CL[m.cl], k = self.keep(m);
+        var par = m.parent ? M[m.parent] : null;
+        var inAct = acl && m.cl === acl;
+        var parIn = par && acl === par.cl;
+        var bg = k ? c.tint : 'transparent';
+        var shadows = [], outline = 'none', deco = k ? 'none' : 'underline dotted #8C867D 2px', op = 1;
+        if (par && self.keep(par)) shadows.push('inset 0 -4px 0 ' + CL[par.cl].tint);
+        if (acl) {
+          if (inAct) {
+            if (k) shadows.push('0 0 0 1.5px ' + c.strong);
+            else outline = '1.5px dashed ' + c.strong;
+            if (m.id === activeId) shadows.push('0 0 0 3px ' + c.strong);
+          } else if (parIn) {
+            shadows = ['inset 0 -4px 0 ' + CL[par.cl].strong];
+          } else {
+            op = 0.3;
+          }
+        }
+        var style = 'background:' + bg + ';box-shadow:' + (shadows.length ? shadows.join(',') : 'none') + ';outline:' + outline + ';outline-offset:-1px;text-decoration:' + deco + ';text-underline-offset:4px;opacity:' + op;
+        var enter = function () { self.setState({ hover: m.id }); };
+        var leave = function () { self.setState({ hover: null }); };
+        var pin = function () { self.setState({ pinned: self.state.pinned === m.id ? null : m.id }); };
+        return {
+          isText: false, isMention: true, text: m.text, style: style,
+          hasBadge: !!m.badge, badge: m.badge, pressed: s.pinned === m.id,
+          aria: '“' + m.surface + '”, ' + c.qid + ' ' + c.name + (k ? '' : ', filtered out'),
+          enter: enter, leave: leave, pin: pin
+        };
+      }) };
+    });
+
+    var kept = ORDER.filter(function (id) { return self.keep(M[id]); }).length;
+
+    var card = { empty: !act, has: !!act };
+    if (act) {
+      var c = CL[act.cl], kAct = this.keep(act);
+      var row = function (on, val, thr, pass, disp) {
+        var ok = on && pass;
+        return {
+          op: on ? 1 : 0.45, disp: disp,
+          bar: 'width:' + Math.round(val * 100) + '%;background:' + (ok ? c.strong : '#B9B3AA'),
+          thr: 'left:' + Math.round(thr * 100) + '%',
+          status: !on ? 'source off' : (pass ? 'passes' : 'below threshold'),
+          statusColor: !on ? '#5E5A55' : (pass ? '#2F6B25' : '#9A3B1E')
+        };
+      };
+      var members = ORDER.filter(function (id) { return M[id].cl === act.cl; });
+      var keptMembers = members.filter(function (id) { return self.keep(M[id]); }).length;
+      card.surface = act.surface;
+      card.qid = c.qid; card.name = c.name; card.tint = c.tint; card.strong = c.strong;
+      card.pinLabel = s.pinned === act.id ? 'Pinned · click to unpin' : 'Click to pin';
+      card.h = row(s.useH, act.H, 1, act.H >= 1, act.H >= 1 ? '1' : '0');
+      card.el = row(s.useEL, act.EL, s.tEL, act.EL >= s.tEL, fmt2(act.EL));
+      card.c = row(s.useC, act.C, s.tC, act.C >= s.tC, fmt2(act.C));
+      card.verdict = (kAct ? 'Kept under current settings. ' : 'Filtered out under current settings. ') +
+        'Its coreference cluster has ' + members.length + ' mentions; ' + keptMembers + ' kept.';
+    }
+
+    var legend = ['JA', 'BB', 'BUF', 'HO'].map(function (k) { return CL[k]; });
+
+    return {
+      chunks: chunks, card: card, legend: legend,
+      keptCount: kept, totalCount: ORDER.length,
+      useH: s.useH, useEL: s.useEL, useC: s.useC,
+      tEL: s.tEL, tC: s.tC, tELfmt: fmt2(s.tEL), tCfmt: fmt2(s.tC),
+      elOff: !s.useEL, cOff: !s.useC,
+      toggleH: function () { self.setState({ useH: !self.state.useH }); },
+      toggleEL: function () { self.setState({ useEL: !self.state.useEL }); },
+      toggleC: function () { self.setState({ useC: !self.state.useC }); },
+      setEL: function (e) { self.setState({ tEL: parseFloat(e.target.value) }); },
+      setC: function (e) { self.setState({ tC: parseFloat(e.target.value) }); },
+      reset: function () { self.setState({ useH: true, useEL: true, useC: true, tEL: 0.6, tC: 0.6 }); }
+    };
+  }
+
+  explorerVals() {
+    var self = this, s = this.state;
+    var q = s.qid;
+    var meta = q ? QMETA[q] : null;
+    var qidChips = QLIST.map(function (qq) {
+      var mm = QMETA[qq], active = qq === q;
+      return {
+        qid: qq, name: mm.name, active: active,
+        style: active ? 'background:' + mm.tint + ';border:1.5px solid ' + mm.strong + ';color:#1C1B1A' : 'background:#FFFFFF;border:1.5px solid #D5D9E0;color:#1C1B1A',
+        pick: function () { self.setState({ qid: qq, qidInput: qq, sel: 0 }); }
+      };
+    });
+    var xTicks = [0, 20000, 40000, 60000, 80000, 100000].map(function (t) {
+      return { label: t === 0 ? '0' : (t / 1000) + 'K', style: 'left:' + (t / TOTAL * 100) + '%' };
+    });
+    var out = {
+      qidInput: s.qidInput, qidChips: qidChips, xTicks: xTicks, lossPoints: LOSS_POINTS,
+      hasQid: !!meta, noQid: !meta && s.qidInput.trim().length > 0,
+      onQid: function (e) {
+        var v = e.target.value;
+        var key = v.trim().toUpperCase();
+        self.setState({ qidInput: v, qid: QMETA[key] ? key : null, sel: 0 });
+      },
+      plot: { qid: '', name: '', tint: '#EEE', strong: '#999', markers: [], lines: [], count: 0, nExp: 0, nImp: 0 },
+      detail: { step: '', doc: '', lead: '', segs: [], mentions: [], kind: '', kindStyle: '', atStart: true, atEnd: true },
+      prevStep: function () { self.setState({ sel: Math.max(0, self.state.sel - 1) }); },
+      nextStep: function () { self.setState({ sel: Math.min((MARKERS[self.state.qid] || []).length - 1, self.state.sel + 1) }); }
+    };
+    if (!meta) return out;
+
+    var list = MARKERS[q];
+    var sel = Math.min(s.sel, list.length - 1);
+    var markers = [], lines = [], nExp = 0;
+    list.forEach(function (mkr, i) {
+      if (mkr.explicit) nExp++;
+      var x = mkr.t / TOTAL * 1000, y = yOf(lossAt(mkr.t));
+      var selected = i === sel, size = selected ? 22 : 15;
+      var fill = mkr.explicit ? meta.strong : '#FFFFFF';
+      markers.push({
+        selected: selected,
+        aria: 'Step ' + mkr.t.toLocaleString('en-US') + ', ' + (mkr.explicit ? 'explicit' : 'implicit') + ' mention',
+        style: 'left:' + (x / 10) + '%;top:' + (y / 320 * 100) + '%;width:' + size + 'px;height:' + size + 'px;background:' + fill + ';border:' + (mkr.explicit ? '2px solid #FFFFFF' : '3px solid ' + meta.strong) + ';box-shadow:' + (selected ? '0 0 0 3px ' + meta.strong + ', 0 2px 6px rgba(0,0,0,.25)' : '0 1px 3px rgba(0,0,0,.25)') + ';z-index:' + (selected ? 3 : 2),
+        pick: function () { self.setState({ sel: i }); }
+      });
+      lines.push({ x: x.toFixed(1), y: y.toFixed(1), color: selected ? meta.strong : meta.tint, w: selected ? 2 : 1.5, op: selected ? 1 : 0.9 });
+    });
+    // draw the selected connector last so it sits on top
+    var selLine = lines.splice(sel, 1)[0]; lines.push(selLine);
+
+    out.plot = { qid: q, name: meta.name, tint: meta.tint, strong: meta.strong, markers: markers, lines: lines, count: list.length, nExp: nExp, nImp: list.length - nExp };
+
+    var cur = list[sel], chunk = POOL[cur.ex];
+    var segs = chunk.segs.map(function (sg) {
+      if (typeof sg === 'string') return { text: sg, style: '' };
+      var hit = sg.q === q || sg.pq === q;
+      return { text: sg.t, style: hit ? 'background:' + meta.tint + ';box-shadow:inset 0 -2px 0 ' + meta.strong + ';border-radius:3px;padding:1px 2px' : '' };
+    });
+    var mentions = chunk.segs.filter(function (sg) { return typeof sg !== 'string' && sg.q === q; }).map(function (sg) {
+      return { text: sg.surface, scores: 'H ' + (sg.H >= 1 ? '1' : '0') + ' · EL ' + fmt2(sg.EL) + ' · C ' + fmt2(sg.C) + ' · ' + (isExplicit(sg) ? 'explicit' : 'implicit') };
+    });
+    out.detail = {
+      step: cur.t.toLocaleString('en-US'), doc: chunk.doc, lead: chunk.lead, segs: segs, mentions: mentions,
+      kind: cur.explicit ? 'explicit mention' : 'implicit mention only',
+      kindStyle: cur.explicit ? 'background:' + meta.strong + ';color:#FFFFFF' : 'background:#FFFFFF;color:' + meta.strong + ';box-shadow:inset 0 0 0 1.5px ' + meta.strong,
+      atStart: sel <= 0, atEnd: sel >= list.length - 1
+    };
+    return out;
+  }
+
+  bibVals() {
+    var self = this, s = this.state;
+    return {
+      bibtex: BIBTEX, showBib: s.showBib,
+      bibBtnBg: s.showBib ? '#FFFFFF' : '#1C1B1A', bibBtnFg: s.showBib ? '#1C1B1A' : '#FFFFFF',
+      copyLabel: s.copied === 'ok' ? 'Copied' : (s.copied === 'fail' ? 'Select the text to copy' : 'Copy'),
+      toggleBib: function () { self.setState({ showBib: !self.state.showBib, copied: '' }); },
+      copyBib: function () {
+        var done = function (v) { self.setState({ copied: v }); clearTimeout(self._ct); self._ct = setTimeout(function () { self.setState({ copied: '' }); }, 2000); };
+        try { navigator.clipboard.writeText(BIBTEX).then(function () { done('ok'); }, function () { done('fail'); }); }
+        catch (e) { done('fail'); }
+      }
+    };
+  }
+
+  attach(c, key) {
+    // No value tooltips: the recreated figures use values read off the paper's plots.
+    c.hits = [];
+    c.rects.forEach(function (r) { r.enter = null; r.leave = null; });
+    c.tip = { show: false, style: '', title: '', body: '' };
+    return c;
+  }
+
+
+  chartVals() {
+    var self = this, s = this.state;
+    return {
+      winRows: buildWins(),
+      precChart: this.attach(buildPrecision(), 'prec'),
+      paretoChart: this.attach(buildPareto(), 'pareto'),
+      lfChart: this.attach(buildLearnForget(s.lfPanel), 'lf'),
+      boxChart: this.attach(buildBoxes(), 'box'),
+      editChart: this.attach(buildEdit(), 'edit'),
+      britChart: this.attach(buildBrittle(), 'brit'),
+      lfBtns: ['Overall', 'Country', 'Religion'].map(function (n) {
+        var on = s.lfPanel === n;
+        return { name: n, active: on, style: on ? 'background:#1C1B1A;color:#FFFFFF' : 'background:transparent;color:#1C1B1A', pick: function () { self.setState({ lfPanel: n, tip: null }); } };
+      })
+    };
+  }
+
+  renderVals() {
+    return Object.assign({}, this.figureVals(), this.explorerVals(), this.bibVals(), this.chartVals());
+  }
+}
+mountDC(Component, document.getElementById('tpl'), document.getElementById('app'));
+</script>
+</body>
+</html>
