@@ -9,7 +9,7 @@
   <a href="#citation"><img src="https://img.shields.io/badge/Cite-BibTeX-6B7280?logo=googlescholar&logoColor=white" alt="BibTeX"></a>
 </p>
 
-This repository contains the official code for the paper: "LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations" (2025).
+This repository contains the official code for the paper: "LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations" (2026).
 
 ---
 
