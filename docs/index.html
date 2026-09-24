@@ -8,6 +8,34 @@
 <meta property="og:title" content="LMEnt: A Suite for Analyzing Knowledge in Language Models">
 <meta property="og:description" content="LMEnt: an entity-annotated Wikipedia pretraining corpus, entity-based retrieval, and 12 pretrained LMs with 4K checkpoints for studying how language models acquire knowledge.">
 <meta property="og:type" content="website">
+<link rel="canonical" href="https://dhgottesman.github.io/LMEnt/">
+<meta property="og:url" content="https://dhgottesman.github.io/LMEnt/">
+<meta property="og:site_name" content="LMEnt">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LMEnt: A Suite for Analyzing Knowledge in Language Models">
+<meta name="twitter:description" content="LMEnt: an entity-annotated Wikipedia pretraining corpus, entity-based retrieval, and 12 pretrained LMs with 4K checkpoints for studying how language models acquire knowledge.">
+<meta name="keywords" content="LMEnt, language models, knowledge acquisition, entity linking, pretraining data, Wikipedia, Wikidata, TACL, EMNLP">
+<meta name="citation_title" content="LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations">
+<meta name="citation_author" content="Gottesman, Daniela">
+<meta name="citation_author" content="Gilaie-Dotan, Alon">
+<meta name="citation_author" content="Cohen, Ido">
+<meta name="citation_author" content="Gur-Arieh, Yoav">
+<meta name="citation_author" content="Mosbach, Marius">
+<meta name="citation_author" content="Yoran, Ori">
+<meta name="citation_author" content="Geva, Mor">
+<meta name="citation_journal_title" content="Transactions of the Association for Computational Linguistics">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_doi" content="10.1162/TACL.a.746">
+<meta name="citation_arxiv_id" content="2509.03405">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "ScholarlyArticle",
+ "name": "LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations",
+ "headline": "LMEnt: A Suite for Analyzing Knowledge in Language Models from Pretraining Data to Representations",
+ "url": "https://dhgottesman.github.io/LMEnt/",
+ "sameAs": ["https://arxiv.org/abs/2509.03405", "https://doi.org/10.1162/TACL.a.746", "https://github.com/dhgottesman/LMEnt", "https://huggingface.co/collections/dhgottesman/lment"],
+ "author": [{"@type": "Person", "name": "Daniela Gottesman"}, {"@type": "Person", "name": "Alon Gilaie-Dotan"}, {"@type": "Person", "name": "Ido Cohen"}, {"@type": "Person", "name": "Yoav Gur-Arieh"}, {"@type": "Person", "name": "Marius Mosbach"}, {"@type": "Person", "name": "Ori Yoran"}, {"@type": "Person", "name": "Mor Geva"}],
+ "datePublished": "2026", "isPartOf": {"@type": "Periodical", "name": "Transactions of the Association for Computational Linguistics"}}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
@@ -230,7 +258,7 @@ html,body{height:auto}
 </div>
 </aside>
 </div>
-<sc-if value="{{showHelp}}" hint-placeholder-val="{{true}}"><div onClick="{{helpOff}}" style="position: absolute; inset: -8px; z-index: 10; border-radius: 18px; background: rgba(255,255,255,0.78); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding-top: 90px; cursor: pointer"><div role="dialog" aria-label="How to use this figure" style="width: 100%; max-width: 560px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 16px; padding: 28px 30px; box-shadow: 0 12px 40px rgba(16,24,40,0.16); display: flex; flex-direction: column; gap: 18px; cursor: default"><div style="font-size: 20px; font-weight: 600; color: #1C1B1A">How to use this figure</div><div style="display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.6; color: #3A3734; text-align: left"><div style="display: flex; gap: 12px; align-items: baseline"><span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #1C1B1A; color: #FFFFFF; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; transform: translateY(-1px)">1</span><span><strong style="color: #1C1B1A; font-weight: 600">Hover over an entity mention</strong> (or click to pin it) to see its entity, its score from each source, and the rest of its coreference cluster.</span></div><div style="display: flex; gap: 12px; align-items: baseline"><span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #1C1B1A; color: #FFFFFF; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; transform: translateY(-1px)">2</span><span><strong style="color: #1C1B1A; font-weight: 600">Toggle the source scores and move the thresholds</strong> in the panel on the right. Mentions that are filtered out from the entity-based retrieval get a dotted line, and the counter shows how many mentions still match.</span></div></div><button type="button" class="btn" onClick="{{helpOff}}" style="align-self: flex-start; min-height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #1C1B1A; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer">Start exploring</button></div></div></sc-if>
+<sc-if value="{{showHelp}}" hint-placeholder-val="{{true}}"><div onClick="{{helpOff}}" style="position: absolute; inset: -18px -8px -8px -8px; z-index: 10; border-radius: 18px; background: rgba(255,255,255,0.78); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding-top: 90px; cursor: pointer"><div role="dialog" aria-label="How to use this figure" style="width: 100%; max-width: 560px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 16px; padding: 28px 30px; box-shadow: 0 12px 40px rgba(16,24,40,0.16); display: flex; flex-direction: column; gap: 18px; cursor: default"><div style="font-size: 20px; font-weight: 600; color: #1C1B1A">How to use this figure</div><div style="display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.6; color: #3A3734; text-align: left"><div style="display: flex; gap: 12px; align-items: baseline"><span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #1C1B1A; color: #FFFFFF; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; transform: translateY(-1px)">1</span><span><strong style="color: #1C1B1A; font-weight: 600">Hover over an entity mention</strong> (or click to pin it) to see its entity, its score from each source, and the rest of its coreference cluster.</span></div><div style="display: flex; gap: 12px; align-items: baseline"><span style="flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #1C1B1A; color: #FFFFFF; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; transform: translateY(-1px)">2</span><span><strong style="color: #1C1B1A; font-weight: 600">Toggle the source scores and move the thresholds</strong> in the panel on the right. Mentions that are filtered out from the entity-based retrieval get a dotted line, and the counter shows how many mentions still match.</span></div></div><button type="button" class="btn" onClick="{{helpOff}}" style="align-self: flex-start; min-height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #1C1B1A; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer">Start exploring</button></div></div></sc-if>
 </div>
 <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px">
 <h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Retrieval that understands entities</h3>
