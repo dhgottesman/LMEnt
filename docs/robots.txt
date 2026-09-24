@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dhgottesman.github.io/LMEnt/sitemap.xml
