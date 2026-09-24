@@ -109,7 +109,7 @@ html,body{height:auto}
 <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">310M mentions</div>
 </div>
 </div>
-<p style="margin: 8px 0 0; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Try it on the <span style="background: #F2D9E3; border-radius: 4px; padding: 1px 4px">Josh Allen</span> example from the paper. Hover a mention to see its scores and the rest of its coreference cluster, then change the sources and thresholds to see which mentions retrieval keeps.</p>
+<p style="margin: 8px 0 0; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Hover over an entity mention to see its scores and the rest of its coreference cluster, then change the sources and thresholds to see which mentions the entity-based retrieval keeps.</p>
 
 <div class="stack" style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start">
 <div style="position: relative; border: 1.5px dashed #C3C8D0; border-radius: 14px; padding: 36px 32px 30px; display: flex; flex-direction: column; gap: 26px; background: #FFFFFF">
@@ -456,27 +456,35 @@ html,body{height:auto}
 </div>
 </section>
 
-<section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="apps-title">
-<div style="display: flex; flex-direction: column; gap: 18px">
-<h2 id="apps-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What you can study with LMEnt</h2>
-<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We release the corpus, annotations, retrieval, models and checkpoints to promote research in the following areas (and more!):</p>
+<section style="display: flex; flex-direction: column; gap: 32px; padding: 52px 48px 48px; border-radius: 24px; background: #F4F6F9; border: 1px solid #E4E7EC; color: #1C1B1A" aria-labelledby="apps-title">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<h2 id="apps-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1; color: #1C1B1A">What you can study with LMEnt</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #3A3734; text-wrap: pretty">We release the corpus, annotations, entity-based retrieval index, models and checkpoints to promote research in the following areas (and more!):</p>
 </div>
-<div class="stack" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px">
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Knowledge plasticity</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Identify steps during pretraining when models are more receptive to acquiring new knowledge.</div>
+<div class="stack" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 28px 28px 30px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E7EC; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06)">
+<div style="position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: #9CC98A; opacity: 0.22"></div>
+<div style="width: 46px; height: 46px; border-radius: 12px; background: #9CC98A; color: #1F3A17; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div>
+<div style="font-weight: 600; font-size: 21px; line-height: 1.25; color: #1C1B1A">Knowledge plasticity</div>
+<div style="font-size: 16px; line-height: 1.6; color: #3A3734">Identify steps during pretraining when models are more receptive to acquiring new knowledge.</div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Improving factuality</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Experiment with different data ordering methods, like grouping together all the chunks mentioning the same entity, or augment the pretraining data by replacing implicit mentions with explicit entity names.</div>
+<div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 28px 28px 30px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E7EC; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06)">
+<div style="position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: #F0B882; opacity: 0.22"></div>
+<div style="width: 46px; height: 46px; border-radius: 12px; background: #F0B882; color: #4A2A0C; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg></div>
+<div style="font-weight: 600; font-size: 21px; line-height: 1.25; color: #1C1B1A">Improving factuality</div>
+<div style="font-size: 16px; line-height: 1.6; color: #3A3734">Experiment with different data ordering methods, like grouping together all the chunks mentioning the same entity, or augment the pretraining data by replacing implicit mentions with explicit entity names.</div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Effect of other data sources</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Extend LMEnt with other sources to analyze if the addition of these tokens improves factuality. The annotation pipeline can also be applied to other knowledge-rich sources that lack hyperlinks.</div>
+<div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 28px 28px 30px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E7EC; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06)">
+<div style="position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: #B7ADEB; opacity: 0.22"></div>
+<div style="width: 46px; height: 46px; border-radius: 12px; background: #B7ADEB; color: #2B2160; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></svg></div>
+<div style="font-weight: 600; font-size: 21px; line-height: 1.25; color: #1C1B1A">Effect of other data sources</div>
+<div style="font-size: 16px; line-height: 1.6; color: #3A3734">Extend LMEnt with other sources to analyze if the addition of these tokens improves factuality. The annotation pipeline can also be applied to other knowledge-rich sources that lack hyperlinks.</div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Mechanistic interpretability</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">A controlled, yet natural, setup for studying the formation of latent knowledge representations and circuits in LMs.</div>
+<div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 28px 28px 30px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E7EC; box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.06)">
+<div style="position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: #EDB3C9; opacity: 0.22"></div>
+<div style="width: 46px; height: 46px; border-radius: 12px; background: #EDB3C9; color: #4F1830; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path><path d="M11 8v6"></path></svg></div>
+<div style="font-weight: 600; font-size: 21px; line-height: 1.25; color: #1C1B1A">Mechanistic interpretability</div>
+<div style="font-size: 16px; line-height: 1.6; color: #3A3734">A controlled, yet natural, setup for studying the formation of latent knowledge representations and circuits in LMs.</div>
 </div>
 </div>
 </section>
