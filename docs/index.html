@@ -62,7 +62,7 @@ html,body{height:auto}
 </div>
 
 <section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="intro-title">
-<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<div style="display: flex; flex-direction: column; gap: 18px">
 <h2 id="intro-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Introduction</h2>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Language models capture substantial amounts of knowledge and beliefs about the world from their training data. A fundamental, yet underexplored, question is how such knowledge representations are formed and shaped during pretraining. Namely, what is the interplay between data composition, training dynamics, and the internal knowledge mechanisms in LMs?</p>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">A key prerequisite for studying this question is the ability to locate exactly where specific knowledge appears in the pretraining data. However, since such metadata is rarely available for pretraining corpora, many works that study knowledge acquisition have used synthetic data, or post-hoc string-based search tools which lack robustness against variability in phrasing. For example, when retrieving information about the American football team the <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo Bills</span>, these tools are less likely to retrieve documents that refer to the team as <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo</span>, <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">The Bills</span>, or even <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">the team</span>.</p>
@@ -88,7 +88,7 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="fig2-title">
-<div style="display: flex; flex-direction: column; gap: 10px; max-width: 780px">
+<div style="display: flex; flex-direction: column; gap: 10px">
 <h2 id="fig2-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Annotating every mention</h2>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Entities can be mentioned explicitly by name, or implicitly through pronouns, aliases, and generic descriptors like <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">the team</span>. We link each mention to a Wikidata QID using three sources, each with its own score. Retrieval keeps a mention when any source is confident enough, so <span style="background: #D3E8C6; border-radius: 4px; padding: 1px 4px">Buffalo</span> the team and <span style="background: #F7DDB8; border-radius: 4px; padding: 1px 4px">Buffalo</span> the city end up in different places.</p>
 </div>
@@ -109,7 +109,7 @@ html,body{height:auto}
 <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5E5A55">310M mentions</div>
 </div>
 </div>
-<p style="margin: 8px 0 0; max-width: 760px; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Try it on the <span style="background: #F2D9E3; border-radius: 4px; padding: 1px 4px">Josh Allen</span> example from the paper. Hover a mention to see its scores and the rest of its coreference cluster, then change the sources and thresholds to see which mentions retrieval keeps.</p>
+<p style="margin: 8px 0 0; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Try it on the <span style="background: #F2D9E3; border-radius: 4px; padding: 1px 4px">Josh Allen</span> example from the paper. Hover a mention to see its scores and the rest of its coreference cluster, then change the sources and thresholds to see which mentions retrieval keeps.</p>
 
 <div class="stack" style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start">
 <div style="position: relative; border: 1.5px dashed #C3C8D0; border-radius: 14px; padding: 36px 32px 30px; display: flex; flex-direction: column; gap: 26px; background: #FFFFFF">
@@ -206,7 +206,7 @@ html,body{height:auto}
 </div>
 </aside>
 </div>
-<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; margin-top: 20px">
+<div style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px">
 <h3 style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Retrieval that understands entities</h3>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Because every mention carries a QID, finding an entity in the training data becomes a QID lookup instead of a string search. Compared with string-matching baselines, LMEnt retrieves more correct mentions for 66–80% of entities, and keeps precision above 97% even when 100K chunks are retrieved for the entity.</p>
 </div>
@@ -244,7 +244,7 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="models-title">
-<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<div style="display: flex; flex-direction: column; gap: 18px">
 <h2 id="models-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">Models you can trace…<span style="display: block; margin-top: 6px; font-size: 28px; font-weight: 400; font-style: italic; color: #3A3734">step by step, chunk by chunk, and entity by entity</span></h2>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We pretrain models at three sizes (170M, 600M and 1B parameters) for 1, 2, 4 and 6 epochs over the corpus: 12 models in total. A checkpoint is saved every 1,000 steps, resulting in 110 checkpoints per epoch and 4K checkpoints overall.</p>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Each training sequence holds chunks from a single document, and chunks never split a mention. So for any step we know exactly which chunks the model saw, and every entity they mention.</p>
@@ -262,7 +262,7 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 28px; margin-top: -48px" aria-labelledby="qid-title">
-<div style="display: flex; flex-direction: column; gap: 10px; max-width: 780px">
+<div style="display: flex; flex-direction: column; gap: 10px">
 <h3 id="qid-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Where does an entity appear in training?</h3>
 <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #3A3734; text-wrap: pretty">Pick an entity to mark every training step whose batch contains a chunk mentioning it. Select a step to read that chunk with the mention highlighted.</p>
 </div>
@@ -345,7 +345,7 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 24px; margin-top: -48px" aria-labelledby="pareto-title">
-<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px">
+<div style="display: flex; flex-direction: column; gap: 14px">
 <h3 id="pareto-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.15">Small data, strong knowledge</h3>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">LMEnt models only ever see Wikipedia, about 0.09% of the tokens OLMo-2 was trained on. Still, on PopQA questions whose subject and answer entities co-occur frequently, LMEnt models achieve comparable performance to other models with better compute efficiency.</p>
 </div>
@@ -368,7 +368,7 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="findings-title">
-<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+<div style="display: flex; flex-direction: column; gap: 18px">
 <h2 id="findings-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What we learned with LMEnt so far</h2>
 <p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">Beyond releasing this resource, we use LMEnt to explore several open questions about how pretraining data shapes knowledge in LMs. We apply LMEnt to study knowledge acquisition and forgetting trends, and in-context editing.</p>
 </div>
@@ -457,34 +457,26 @@ html,body{height:auto}
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 28px" aria-labelledby="apps-title">
-<div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
-<h2 id="apps-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What You Can Study with LMEnt</h2>
-<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We release the corpus, annotations, retrieval, models and checkpoints to promote research in the following areas:</p>
+<div style="display: flex; flex-direction: column; gap: 18px">
+<h2 id="apps-title" style="margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.1">What you can study with LMEnt</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.65; color: #2A2826; text-wrap: pretty">We release the corpus, annotations, retrieval, models and checkpoints to promote research in the following areas (and more!):</p>
 </div>
-<div class="stack" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px">
+<div class="stack" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px">
 <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Learning dynamics</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Watch a fact get learned, and forgotten, checkpoint by checkpoint.</div>
+<div style="font-weight: 600; font-size: 17px">Knowledge plasticity</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Identify steps during pretraining when models are more receptive to acquiring new knowledge.</div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Attribution</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Trace an answer back to the exact chunks and steps behind it.</div>
+<div style="font-weight: 600; font-size: 17px">Improving factuality</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Experiment with different data ordering methods, like grouping together all the chunks mentioning the same entity, or augment the pretraining data by replacing implicit mentions with explicit entity names.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
+<div style="font-weight: 600; font-size: 17px">Effect of other data sources</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Extend LMEnt with other sources to analyze if the addition of these tokens improves factuality. The annotation pipeline can also be applied to other knowledge-rich sources that lack hyperlinks.</div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
 <div style="font-weight: 600; font-size: 17px">Mechanistic interpretability</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Probe how an entity’s representation forms as its mentions pile up.</div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Editing</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Test how training exposure shapes which facts can be changed later.</div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Plasticity</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Measure how easily new knowledge overrides what the model already knows.</div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1.5px solid #1C1B1A">
-<div style="font-weight: 600; font-size: 17px">Hallucinations</div>
-<div style="font-size: 16px; line-height: 1.55; color: #3A3734">Find the facts a model gets wrong, and what it actually saw about them.</div>
+<div style="font-size: 16px; line-height: 1.55; color: #3A3734">A controlled, yet natural, setup for studying the formation of latent knowledge representations and circuits in LMs.</div>
 </div>
 </div>
 </section>
